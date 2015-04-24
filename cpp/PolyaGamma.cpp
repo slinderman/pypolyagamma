@@ -4,11 +4,41 @@
 using std::pow;
 
 ////////////////////////////////////////////////////////////////////////////////
+			       // Constructors //
+////////////////////////////////////////////////////////////////////////////////
+
+PolyaGamma::PolyaGamma(int trunc) : T(trunc), bvec(T)
+{
+  set_trunc(T);
+} // PolyaGamma
+
+////////////////////////////////////////////////////////////////////////////////
 				 // Utility //
 ////////////////////////////////////////////////////////////////////////////////
 
+void PolyaGamma::set_trunc(int trunc)
+{
+  
+  if (trunc < 1) {
+  #ifndef NTHROW
+    throw std::invalid_argument("PolyaGamma(int trunc): trunc < 1.");
+  #else
+    fprintf(stderr, "PolyaGamma(int trunc): trunc < 1.  Set trunc=1.\n");
+    trunc = 1;
+  #endif
+  }
+  
+  T = trunc;
+  bvec.resize(T);
 
-double a(int n, double x)
+  for(int k=0; k < T; ++k){
+    // + since we start indexing at 0.
+    double d = ((double) k + 0.5);
+    bvec[k] = FOURPISQ * d * d;
+  }
+} // set_trunc
+
+double PolyaGamma::a(int n, double x)
 {
   double K = (n + 0.5) * __PI;
   double y = 0;
@@ -24,7 +54,7 @@ double a(int n, double x)
   return y;
 }
 
-double pigauss(double x, double Z)
+double PolyaGamma::pigauss(double x, double Z)
 {
   double b = sqrt(1.0 / x) * (x * Z - 1);
   double a = sqrt(1.0 / x) * (x * Z + 1) * -1.0;
@@ -32,7 +62,7 @@ double pigauss(double x, double Z)
   return y;
 }
 
-double mass_texpon(double Z)
+double PolyaGamma::mass_texpon(double Z)
 {
   double t = __TRUNC;
 
@@ -49,21 +79,21 @@ double mass_texpon(double Z)
   return 1.0 / (1.0 + qdivp);
 }
 
-double rtigauss(double Z, RNG* r)
+double PolyaGamma::rtigauss(double Z, RNG& r)
 {
   Z = fabs(Z);
   double t = __TRUNC;
   double X = t + 1.0;
   if (__TRUNC_RECIP > Z) { // mu > t
     double alpha = 0.0;
-    while (r->unif() > alpha) {
+    while (r.unif() > alpha) {
       // X = t + 1.0;
       // while (X > t)
-      // 	X = 1.0 / r->gamma_rate(0.5, 0.5);
+      // 	X = 1.0 / r.gamma_rate(0.5, 0.5);
       // Slightly faster to use truncated normal.
-      double E1 = r->expon_rate(1.0); double E2 = r->expon_rate(1.0);
+      double E1 = r.expon_rate(1.0); double E2 = r.expon_rate(1.0);
       while ( E1*E1 > 2 * E2 / t) {
-	E1 = r->expon_rate(1.0); E2 = r->expon_rate(1.0);
+	E1 = r.expon_rate(1.0); E2 = r.expon_rate(1.0);
       }
       X = 1 + E1 * t;
       X = t / (X * X);
@@ -73,11 +103,11 @@ double rtigauss(double Z, RNG* r)
   else {
     double mu = 1.0 / Z;
     while (X > t) {
-      double Y = r->norm(1.0); Y *= Y;
+      double Y = r.norm(1.0); Y *= Y;
       double half_mu = 0.5 * mu;
       double mu_Y    = mu  * Y;
       X = mu + half_mu * mu_Y - half_mu * sqrt(4 * mu_Y + mu_Y * mu_Y);
-      if (r->unif() > mu / (mu + X))
+      if (r.unif() > mu / (mu + X))
 	X = mu*mu / X;
     }
   }
@@ -88,13 +118,18 @@ double rtigauss(double Z, RNG* r)
 				  // Sample //
 ////////////////////////////////////////////////////////////////////////////////
 
-double draw(int n, double z, RNG* r)
+// double PolyaGamma::draw(double n, double z, RNG& r)
+// {
+//   return draw_sum_of_gammas(n, z, r);
+// }
+
+double PolyaGamma::draw(int n, double z, RNG& r)
 {
   if (n < 1) {
   #ifndef NTHROW
-    throw std::invalid_argument("draw: n < 1.");
+    throw std::invalid_argument("PolyaGamma::draw: n < 1.");
   #else
-    fprintf(stderr, "draw: n < 1.  Set n = 1.\n");
+    fprintf(stderr, "PolyaGamma::draw: n < 1.  Set n = 1.\n");
     n = 1;
   #endif
   }
@@ -104,7 +139,16 @@ double draw(int n, double z, RNG* r)
   return sum;
 } // draw
 
-double draw_like_devroye(double Z, RNG* r)
+double PolyaGamma::draw_sum_of_gammas(double n, double z, RNG& r)
+{
+  double x = 0;
+  double kappa = z * z;
+  for(int k=0; k < T; ++k)
+    x += r.gamma_scale(n, 1.0) / (bvec[k] + kappa);
+  return 2.0 * x;
+} // draw_sum_of_gammas
+
+double PolyaGamma::draw_like_devroye(double Z, RNG& r)
 {
   // Change the parameter.
   Z = fabs(Z) * 0.5;
@@ -123,13 +167,13 @@ double draw_like_devroye(double Z, RNG* r)
   while (true) {
 
     // if (r.unif() < p/(p+q))
-    if ( r->unif() < mass_texpon(Z) )
-      X = __TRUNC + r->expon_rate(1) / fz;
+    if ( r.unif() < mass_texpon(Z) )
+      X = __TRUNC + r.expon_rate(1) / fz;
     else
       X = rtigauss(Z, r);
 
     S = a(0, X);
-    Y = r->unif() * S;
+    Y = r.unif() * S;
     int n = 0;
     bool go = true;
 
@@ -161,7 +205,7 @@ double draw_like_devroye(double Z, RNG* r)
 			      // Static Members //
 ////////////////////////////////////////////////////////////////////////////////
 
-double jj_m1(double b, double z)
+double PolyaGamma::jj_m1(double b, double z) 
 {
     z = fabs(z);
     double m1 = 0.0;
@@ -172,7 +216,7 @@ double jj_m1(double b, double z)
     return m1;
 }
 
-double jj_m2(double b, double z)
+double PolyaGamma::jj_m2(double b, double z)
 {
     z = fabs(z);
     double m2 = 0.0;
@@ -184,12 +228,18 @@ double jj_m2(double b, double z)
     return m2;
 }
 
-double pg_m1(double b, double z)
+double PolyaGamma::pg_m1(double b, double z)
 {
     return jj_m1(b, 0.5 * z) * 0.25;
 }
  
-double pg_m2(double b, double z)
+double PolyaGamma::pg_m2(double b, double z)
 {
     return jj_m2(b, 0.5 * z) * 0.0625;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+				 // APPENDIX //
+////////////////////////////////////////////////////////////////////////////////
+
+// It was not faster to use "vectorized" versions of r.gamma or r.igamma.

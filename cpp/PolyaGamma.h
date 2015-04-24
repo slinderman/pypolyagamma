@@ -37,19 +37,41 @@ const double FOURPISQ = 4 * __PI * __PI;
 const double __TRUNC = 0.64;
 const double __TRUNC_RECIP = 1.0 / __TRUNC;
 
-// Draw.
-double draw(int n, double z, RNG* r);
-double draw_like_devroye(double z, RNG* r);
+class PolyaGamma
+{
 
-// Helper.
-double a(int n, double x);
-double pigauss(double x, double Z);
-double mass_texpon(double Z);
-double rtigauss(double Z, RNG* r);
+  // For sum of Gammas.
+  int T;
+  vector<double> bvec;
 
-double jj_m1(double b, double z);
-double jj_m2(double b, double z);
-double pg_m1(double b, double z);
-double pg_m2(double b, double z);
+ public:
+
+  // Constructors.
+  PolyaGamma(int trunc = 200);
+
+  // Draw.
+  // double draw(double n, double z, RNG& r);
+  double draw(int n, double z, RNG& r);
+  double draw_sum_of_gammas(double n, double z, RNG& r);
+  double draw_like_devroye(double z, RNG& r);
+
+  //void draw(MF x, double a, double z, RNG& r);
+  //void draw(MF x, MF a, MF z, RNG& r);
+
+  // Utility.
+  void set_trunc(int trunc);
+
+  // Helper.
+  double a(int n, double x);
+  double pigauss(double x, double Z);
+  double mass_texpon(double Z);
+  double rtigauss(double Z, RNG& r);
+
+  static double jj_m1(double b, double z);
+  static double jj_m2(double b, double z);
+  static double pg_m1(double b, double z);
+  static double pg_m2(double b, double z);
+
+};
 
 #endif
