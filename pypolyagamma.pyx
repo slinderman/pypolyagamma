@@ -9,11 +9,13 @@
 # cython: wraparound = False
 # cython: cdivision = True
 
+from libc.stdio cimport printf
+
 from cython.parallel import prange
 from libcpp.vector cimport vector
 
 from cython.operator cimport dereference as deref
-from openmp cimport omp_get_num_threads
+from openmp cimport omp_get_num_threads, omp_set_num_threads
 
 
 # Import C++ classes from RNG.h
@@ -77,13 +79,15 @@ cpdef pgdrawvpar(list ppgs, double[::1] ns, double[::1] zs, double[::1] pgs):
     for ppg in ppgs:
         ppgsv.push_back((<PyPolyaGamma>ppg).thisptr)
 
+
+
     cdef int s = 0
     cdef int S = ns.size
-    #cdef int num_threads = omp_get_num_threads()
+    cdef int num_threads = omp_get_num_threads()
 
     with nogil:
-        #for s in prange(S, num_threads=num_threads):
         for s in prange(S):
+            printf("%d\n", omp_get_num_threads())
             pgs[s] = ppgsv[s % m].draw(ns[s], zs[s])
 
 
