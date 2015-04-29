@@ -20,6 +20,8 @@
 #define RCHECK 1000
 #endif
 
+RNG::RNG(unsigned long seed) : BasicRNG(seed) {}
+
 inline void check_R_interupt(int count)
 {
     #ifdef USE_R

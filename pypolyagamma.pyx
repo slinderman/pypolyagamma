@@ -3,7 +3,8 @@
 # distutils: libraries = stdc++ gsl gslcblas
 # distutils: library_dirs = /usr/local/lib
 # distutils: include_dirs = cpp/include /usr/local/include
-# distutils: extra_compile_args = -O3 -w -std=c++11
+# distutils: extra_compile_args = -O3 -w -std=c++11 -fopenmp
+# distutils: extra_link_args = -fopenmp
 # cython: boundscheck = False
 # cython: wraparound = False
 # cython: cdivision = True
@@ -12,6 +13,7 @@ from cython.parallel import prange
 from libcpp.vector cimport vector
 
 from cython.operator cimport dereference as deref
+from openmp cimport omp_get_num_threads
 
 
 # Import C++ classes from RNG.h
@@ -19,7 +21,7 @@ cdef extern from "cpp/include/RNG.hpp":
 
     # RNG class
     cdef cppclass RNG:
-        RNG() except +
+        RNG(unsigned long seed) except +
 
 
 # Import C++ classes from PolyaGammaHybrid.h
@@ -27,16 +29,16 @@ cdef extern from "cpp/PolyaGammaHybrid.h":
 
     # PolyaGammaHybrid class
     cdef cppclass PolyaGammaHybridDouble:
-        PolyaGammaHybridDouble() except +
-        double draw(double b_, double z_, RNG& r) except +
+        PolyaGammaHybridDouble(unsigned long seed) except +
+        double draw(double b_, double z_) nogil except +
 
 
 # Expose the RNG class to Python
 cdef class PyRNG:
     cdef RNG *thisptr
 
-    def __cinit__(self):
-        self.thisptr = new RNG()
+    def __cinit__(self, unsigned long seed=0):
+        self.thisptr = new RNG(seed)
 
     def __dealloc__(self):
         del self.thisptr
@@ -45,16 +47,16 @@ cdef class PyRNG:
 cdef class PyPolyaGamma:
     cdef PolyaGammaHybridDouble *thisptr
 
-    def __cinit__(self):
-        self.thisptr = new PolyaGammaHybridDouble()
+    def __cinit__(self, unsigned long seed=0):
+        self.thisptr = new PolyaGammaHybridDouble(seed)
 
     def __dealloc__(self):
         del self.thisptr
 
-    cpdef double pgdraw(self, double n, double z, PyRNG rng):
-        return self.thisptr.draw(n, z, deref(rng.thisptr))
+    cpdef double pgdraw(self, double n, double z):
+        return self.thisptr.draw(n, z)
 
-    cpdef pgdrawv(self, double[::1] ns, double[::1] zs, double[::1] pgs, PyRNG rng):
+    cpdef pgdrawv(self, double[::1] ns, double[::1] zs, double[::1] pgs):
         """
         Draw a vector of Polya-gamma random variables
         """
@@ -63,5 +65,25 @@ cdef class PyPolyaGamma:
         cdef int S = ns.size
 
         for s in range(S):
-            pgs[s] = self.thisptr.draw(ns[s], zs[s], deref(rng.thisptr))
+            pgs[s] = self.thisptr.draw(ns[s], zs[s])
+
+cpdef pgdrawvpar(list ppgs, double[::1] ns, double[::1] zs, double[::1] pgs):
+    """
+    Draw a vector of Polya-gamma random variables in parallel
+    """
+    # Make a vector of PyPolyaGammDouble C++ objects
+    cdef int m = len(ppgs)
+    cdef vector[PolyaGammaHybridDouble*] ppgsv
+    for ppg in ppgs:
+        ppgsv.push_back((<PyPolyaGamma>ppg).thisptr)
+
+    cdef int s = 0
+    cdef int S = ns.size
+    #cdef int num_threads = omp_get_num_threads()
+
+    with nogil:
+        #for s in prange(S, num_threads=num_threads):
+        for s in prange(S):
+            pgs[s] = ppgsv[s % m].draw(ns[s], zs[s])
+
 

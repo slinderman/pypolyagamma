@@ -4,11 +4,11 @@
 			  // Constructors //
 //////////////////////////////////////////////////////////////////////
 
-BasicRNG::BasicRNG()
-{
-  r = gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set (r, time(NULL));
-}
+//BasicRNG::BasicRNG()
+//{
+//  r = gsl_rng_alloc(gsl_rng_mt19937);
+//  gsl_rng_set (r, time(NULL));
+//}
 
 BasicRNG::BasicRNG(unsigned long seed)
 {
@@ -16,11 +16,11 @@ BasicRNG::BasicRNG(unsigned long seed)
   gsl_rng_set (r, seed);
 }
 
-BasicRNG::BasicRNG(const BasicRNG& rng)
-{
-  r = gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_memcpy(r, rng.r );
-}
+//BasicRNG::BasicRNG(const BasicRNG& rng)
+//{
+//  r = gsl_rng_alloc(gsl_rng_mt19937);
+//  gsl_rng_memcpy(r, rng.r );
+//}
 
 //////////////////////////////////////////////////////////////////////
 			  // Assignment= //

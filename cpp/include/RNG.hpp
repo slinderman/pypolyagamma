@@ -55,6 +55,8 @@ protected:
 
  public:
 
+ RNG(unsigned long seed);
+
   // Random variates.  I need to do this so I can overload the function names.
   using BasicRNG::unif;
   using BasicRNG::expon_mean;
