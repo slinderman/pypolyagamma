@@ -8,20 +8,20 @@ import pypolyagamma as pypolyagamma
 rng = pypolyagamma.PyRNG(0)
 ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2**16))
 
-# Call the single sample
-v1 = ppg.pgdraw(1.,1.)
-print v1
-
-# Call the vectorized version
-n = 100
-v2 = np.zeros(n)
+# # Call the single sample
+# v1 = ppg.pgdraw(1.,1.)
+# print v1
+#
+# # Call the vectorized version
+n = 5
+# v2 = np.zeros(n)
 a = 14*np.ones(n, dtype=np.float)
 b = 0*np.ones(n, dtype=np.float)
-ppg.pgdrawv(a, b, v2)
-print v2
+# ppg.pgdrawv(a, b, v2)
+# print v2
 
 # Call the parallel vectorized version
-n = 100
+# n = 5
 nthreads = 8
 v3 = np.zeros(n)
 seeds = np.random.randint(2**16, size=nthreads)
