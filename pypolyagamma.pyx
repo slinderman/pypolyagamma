@@ -39,7 +39,7 @@ cdef extern from "cpp/PolyaGammaHybrid.h":
 cdef class PyRNG:
     cdef RNG *thisptr
 
-    def __cinit__(self, unsigned long seed):
+    def __cinit__(self, unsigned long seed=0):
         self.thisptr = new RNG(seed)
 
     def __dealloc__(self):
@@ -49,7 +49,7 @@ cdef class PyRNG:
 cdef class PyPolyaGamma:
     cdef PolyaGammaHybridDouble *thisptr
 
-    def __cinit__(self, unsigned long seed):
+    def __cinit__(self, unsigned long seed=0):
         self.thisptr = new PolyaGammaHybridDouble(seed)
 
     def __dealloc__(self):
@@ -92,8 +92,7 @@ cpdef pgdrawvpar(list ppgs, double[::1] ns, double[::1] zs, double[::1] pgs):
         sequence_idx_start = blocklen * thread_num
         sequence_idx_end = min(sequence_idx_start + blocklen, S)
 
-        #for s in prange(S):
-        #    pgs[s] = ppgsv[s % m].draw(ns[s], zs[s])
+        # TODO: Make sure there is a ppg sampler for each thread
         for s in range(sequence_idx_start, sequence_idx_end):
             pgs[s] = ppgsv[thread_num].draw(ns[s], zs[s])
 
