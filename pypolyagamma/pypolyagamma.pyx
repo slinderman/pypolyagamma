@@ -33,6 +33,7 @@ cdef extern from "cpp/PolyaGammaHybrid.h":
     cdef cppclass PolyaGammaHybridDouble:
         PolyaGammaHybridDouble(unsigned long seed) except +
         double draw(double b_, double z_) nogil except +
+        void set_trunc(int trunc) except +
 
 
 # Expose the RNG class to Python
@@ -49,11 +50,15 @@ cdef class PyRNG:
 cdef class PyPolyaGamma:
     cdef PolyaGammaHybridDouble *thisptr
 
-    def __cinit__(self, unsigned long seed=0):
+    def __cinit__(self, unsigned long seed=0, int trunc=40):
         self.thisptr = new PolyaGammaHybridDouble(seed)
+        self.set_trunc(trunc)
 
     def __dealloc__(self):
         del self.thisptr
+
+    cpdef set_trunc(self, int trunc):
+        self.thisptr.set_trunc(trunc)
 
     cpdef double pgdraw(self, double n, double z):
         return self.thisptr.draw(n, z)
