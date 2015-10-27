@@ -24,6 +24,7 @@ public:
     PolyaGammaAlt al;
     PolyaGammaSP  sp;
 
+    void set_trunc(int trunc);
     Real draw(Real b, Real z);
 
 };
@@ -39,6 +40,13 @@ template <typename Real>
 PolyaGammaHybrid<Real>::~PolyaGammaHybrid()
 {
     delete rng;
+}
+
+// Plumbing
+template <typename Real>
+void PolyaGammaHybrid<Real>::set_trunc(int trunc)
+{
+    dv.set_trunc(trunc);
 }
 
 // Draw
