@@ -17,6 +17,10 @@ from libcpp.vector cimport vector
 from cython.operator cimport dereference as deref
 from openmp cimport omp_get_num_threads, omp_get_thread_num, omp_get_max_threads
 
+import numpy as np
+cimport numpy as np
+from scipy.special import gammaln
+from scipy.misc import logsumexp
 
 # Import C++ classes from RNG.h
 cdef extern from "cpp/include/RNG.hpp":
@@ -123,3 +127,36 @@ cpdef int get_omp_num_threads():
     # This might not be kosher
     cdef int num_threads = omp_get_max_threads()
     return num_threads
+
+def pgpdf(omega, b, psi, trunc=200):
+    """
+    Approximate the density log PG(omega | b, psi) using a
+    truncation of the density written as an infinite sum.
+
+    :param omega: point at which to evaluate density
+    :param b:   first parameter of PG
+    :param psi: tilting of PG
+    :param trunc: number of terms in sum
+    """
+    logZ = b * np.log(np.cosh(psi/2.)) + (b-1) * np.log(2) -gammaln(b)
+    lp =  0
+    nlp = 0
+    for n in xrange(trunc):
+        sign = -1 ** n
+        trm = gammaln(n+b) - gammaln(n+1)
+        trm += np.log(2*n + b) - 0.5 * np.log(2*np.pi*omega**3)
+        trm += -(2*n+b)**2 / (8*omega) - psi**2/2. * omega
+
+        if n % 2 == 0:
+            lp += trm
+        else:
+            nlp += trm
+
+    # Compute the sum of these terms
+    sumlp = logsumexp(lp)
+    sumnlp = logsumexp(nlp)
+    p = np.exp(lp + sumlp) - np.exp(sumnlp)
+    return p
+
+def pgmean(b, psi):
+    return b / (2.*psi) * np.tanh(psi/2.)
