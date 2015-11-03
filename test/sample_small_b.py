@@ -190,12 +190,17 @@ def plot_envelopes():
     plt.plot(thr, ythr, '-k' )
 
     plt.ylim(0,1)
+    plt.ylabel("l(x | b) and r(x|b)")
+    plt.xlabel("x")
+    plt.savefig("smallb_envelopes.png")
     plt.show()
 
     plt.figure()
     plt.plot(bs, xs[ints], 'ok')
     plt.plot(bbs, thr, '-k')
     plt.show()
+
+    plt.savefig("smallb_crossover.png")
 
 def plot_pdf_and_envelope():
     xmax = 5.
@@ -241,6 +246,7 @@ def plot_pdf_and_envelope():
         if i == B-1:
             plt.xlabel("x")
 
+    plt.savefig("smallb_pdf_and_envelopes.png")
 
 
     # plt.subplot(133)
