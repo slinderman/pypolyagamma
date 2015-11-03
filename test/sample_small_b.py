@@ -88,71 +88,167 @@ def compare_samples():
     for n in xrange(5):
         plt.hist(np.sum(gs[:n+1], axis=0), 50, normed=True, alpha=0.5)
 
+def invgamma_envelope(xs, b):
+    # Compute the density of an inverse gamma kernel
+    alpha = 0.5
+    beta = b**2 / 2.
+    iglogpdf = b*np.log(2) + alpha * np.log(beta) - gammaln(alpha) + -(alpha+1) * np.log(xs) - beta/xs
+    igpdf = np.exp(iglogpdf)
+    igcdf = cumtrapz(igpdf / 2.0**b, xs) if np.size(xs) > 1 else None
+    return igpdf, iglogpdf, igcdf
 
-# def plot_terms():
-xmax = 5.
-xs = np.linspace(1e-3, xmax, 1000)
-b = 0.5
-Nmax = 20
-ns = np.arange(Nmax)
-Sns = np.array([Sn(xs,n,b) for n in ns])
+def gamma_envelope(xs, b):
+    # Compute a gamma distribution envelope
+    alpha = b
+    beta = np.pi**2 / 8.
+    glogpdf = b * np.log(6./np.pi) + alpha * np.log(beta) - gammaln(alpha) + (alpha-1) * np.log(xs) - beta*xs
+    gpdf = np.exp(glogpdf)
+    gcdf = cumtrapz(gpdf / (6/np.pi)**b, xs) if np.size(xs) > 1 else None
+    return gpdf, glogpdf, gcdf
 
-# # Plot the partial sums
-# plt.figure()
-# cm = get_cmap("Greys")
-# for n in xrange(1,Nmax):
-#     plt.plot(xs, np.sum(Sns[:n], axis=0),
-#              color=cm(np.clip(float(n)/Nmax, 0.3, 0.7)),
-#              label="n=%d" % n)
-# plt.legend()
+# Compute an inverse Gaussian envelope
+def invgauss_envelope(xs, b):
+    z = 1.
+    mu = b / z
+    lam = b**2
+    igausslogpdf = b * np.log(2.) + 0.5 * np.log(lam) -0.5*np.log(2*np.pi*xs**3) - lam * (xs-mu)**2 / (2*mu**2 * xs)
+    igausspdf = np.exp(igausslogpdf)
+    igausscdf = cumtrapz(igausspdf / (2**b), xs) if np.size(xs) > 1 else None
+    return igausspdf, igausslogpdf, igausscdf
 
-# Plot the log pdf
-# It should not be concave
-pgpdf = np.sum(Sns, axis=0)
-pgcdf = cumtrapz(pgpdf, xs)
-pglogpdf = np.log(pgpdf)
+def plot_partial_sums(b=0.5):
+    xmax = 5.
+    xs = np.linspace(1e-3, xmax, 1000)
 
-# Compute the density of an inverse gamma kernel
-alpha = 0.5
-beta = b**2 / 2.
-iglogpdf = b*np.log(2) + alpha * np.log(beta) - gammaln(alpha) + -(alpha+1) * np.log(xs) - beta/xs
-igpdf = np.exp(iglogpdf)
-igcdf = cumtrapz(igpdf / 2.0**b, xs)
+    Nmax = 20
+    ns = np.arange(Nmax)
+    Sns = np.array([Sn(xs,n,b) for n in ns])
 
-# Compute a gamma distribution envelope
-alpha = b
-beta = np.pi**2 / 8.
-glogpdf = b * np.log(6./np.pi) + alpha * np.log(beta) - gammaln(alpha) + (alpha-1) * np.log(xs) - beta*xs
-gpdf = np.exp(glogpdf)
-gcdf = cumtrapz(gpdf / (6/np.pi)**b, xs)
+    # Check if partial sums are decreasing
+    pgpdf = np.sum(Sns, axis=0)
+    pgcdf = cumtrapz(pgpdf, xs)
+    def _check_decreasing(X):
+        # Make sure each row is smaller than the one before
+        N,T = X.shape
+        dec = np.ones(T, dtype=np.bool)
+        for n in xrange(1,N):
+            dec &= (X[n] <= X[n-1])
+        return dec
 
-plt.figure()
-plt.subplot(131)
-plt.plot(xs, pgpdf, 'b')
-plt.plot(xs, igpdf, 'r')
-# plt.plot(xs, gpdf,  'g')
-plt.subplot(132)
-plt.plot(xs, pglogpdf, 'b')
-plt.plot(xs, iglogpdf, 'r')
-plt.plot(xs, glogpdf, 'g')
-plt.subplot(133)
-plt.plot(xs[1:], pgcdf, 'b')
-plt.plot(xs[1:], igcdf, 'r')
-plt.plot(xs[1:], gcdf, 'g')
+    isdec = _check_decreasing(np.abs(Sns))
+    print "Decreasing until cdf = ", pgcdf[np.amin(np.where(~isdec)[0])]
 
-# Plot the terms in the sum
-# Check if they are decreasing
-def _check_decreasing(X):
-    # Make sure each row is smaller than the one before
-    N,T = X.shape
-    dec = np.ones(T, dtype=np.bool)
-    for n in xrange(1,N):
-        dec &= (X[n] <= X[n-1])
-    return dec
 
-isdec = _check_decreasing(np.abs(Sns))
-print "Decreasing until cdf = ", pgcdf[np.amin(np.where(~isdec)[0])]
+    # Plot the partial sums
+    plt.figure()
+    cm = get_cmap("Greys")
+    for n in xrange(1,Nmax):
+        plt.plot(xs, np.sum(Sns[:n], axis=0),
+                 color=cm(np.clip(float(n)/Nmax, 0.3, 0.7)),
+                 label="n=%d" % n)
+    plt.legend()
 
-# plt.figure()
-# for n in xrange(Nmax):
-#     plt.semilogy(np.abs(Sns[n]))
+def approx_threshold(b):
+    # b=0.10, thr=0.2
+    # b=1.00, thr=2.0
+    # thr = mb + c
+    # m = (2-0.2) / (1-0.1)
+    m = 2.0
+    # c = thr - m*b = 2.0 - m * 1.0 = 0.0
+    c = 0.0
+    return m*b + c
+
+def plot_envelopes():
+
+    xmax = 5.
+    xs = np.linspace(1e-3, xmax, 1000)
+    bs = np.linspace(1e-1, 1.00, 10)
+    ints = []
+
+    def _find_intersect(y1,y2,start=0,stop=-1):
+        return start + np.argmin((y1[start:stop]-y2[start:stop])**2)
+
+    plt.figure()
+    for i,b in enumerate(bs):
+        # Get envelopes
+        igpdf, iglogpdf, igcdf = invgamma_envelope(xs, b)
+        igausspdf, igausslogpdf, igausscdf = invgauss_envelope(xs, b)
+        int = _find_intersect(igpdf, igausspdf,
+                              start=np.argmin((xs-0.05)**2),
+                              stop=np.argmin((xs-2.0)**2))
+        ints.append(int)
+        # alpha = 0.1 + (0.9 * i)/len(bs)
+        alpha = 0.5
+        plt.plot(xs, igpdf, '-b', alpha=alpha)
+        plt.plot(xs, igausspdf, '-r', alpha=alpha)
+        plt.plot(xs[int], igpdf[int], 'ko')
+
+    # Plot the approximate thresholds
+    bbs = np.linspace(bs[0], bs[-1])
+    thr = approx_threshold(bbs)
+    ythr = np.array([invgauss_envelope(t,b) for t,b in zip(thr,bbs)])
+    plt.plot(thr, ythr, '-k' )
+
+    plt.ylim(0,1)
+    plt.show()
+
+    plt.figure()
+    plt.plot(bs, xs[ints], 'ok')
+    plt.plot(bbs, thr, '-k')
+    plt.show()
+
+def plot_pdf_and_envelope():
+    xmax = 5.
+    xs = np.linspace(1e-3, xmax, 1000)
+    Nmax = 20
+    ns = np.arange(Nmax)
+    B = 5
+    bs = np.linspace(0.1, 0.95, B)
+
+
+    plt.figure(figsize=(12,12))
+    for i,b in enumerate(bs):
+        # Get the terms of the sum
+        Sns = np.array([Sn(xs,n,b) for n in ns])
+
+        # Plot the pdf and the envelopes
+        pgpdf = np.sum(Sns, axis=0)
+        pgcdf = cumtrapz(pgpdf, xs)
+        pglogpdf = np.log(pgpdf)
+
+        # Find the threshold
+        thr = approx_threshold(b)
+        ithr = np.argmin((xs-thr)**2)
+
+        # Get envelopes
+        igpdf, iglogpdf, igcdf = invgamma_envelope(xs[:ithr], b)
+        igausspdf, igausslogpdf, igausscdf = invgauss_envelope(xs[ithr:], b)
+
+        plt.subplot(B,2,2*i+1)
+        plt.plot(xs, pgpdf, 'k')
+        plt.plot(xs[:ithr], igpdf, 'b')
+        plt.plot(xs[ithr:], igausspdf,  'r')
+        plt.ylabel("p(x | b=%.1f)" % b)
+        if i == B-1:
+            plt.xlabel("x")
+
+        plt.subplot(B,2,2*i+2)
+        plt.plot(xs, pglogpdf, 'k')
+        plt.plot(xs[:ithr], iglogpdf, 'b')
+        plt.plot(xs[ithr:], igausslogpdf, 'r')
+        plt.ylim(pglogpdf[-1],5)
+        plt.ylabel("log p(x | b=%.1f)" % b)
+        if i == B-1:
+            plt.xlabel("x")
+
+
+
+    # plt.subplot(133)
+
+    # plt.plot(xs[1:], pgcdf, 'k')
+    # plt.plot(xs[:ithr-1], igcdf, 'b')
+    # plt.plot(xs[ithr:-1], igcdf[ithr] + igausscdf, 'r')
+
+
+plot_envelopes()
+plot_pdf_and_envelope()
