@@ -1,0 +1,175 @@
+% arXiv formatting
+\documentclass[aos,preprint]{imsart}
+\setattribute{journal}{name}{} 
+
+\RequirePackage[OT1]{fontenc}
+\RequirePackage{amsthm,amsmath,amssymb}
+
+% ICML-style citing
+\RequirePackage{natbib}
+\setcitestyle{round,authoryear,citesep={;},aysep={,},yysep={;}}
+\newcommand{\yrcite}[1]{\citeyearpar{#1}}
+\renewcommand{\cite}[1]{\citep{#1}}
+
+\RequirePackage[colorlinks,citecolor=blue,urlcolor=blue]{hyperref}
+
+% use Times
+%\usepackage{times}
+% For figures
+\usepackage{graphicx} % more modern
+
+\usepackage{macros}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+%\usepackage{amsmath,amssymb}
+\usepackage{verbatim}
+\usepackage{gensymb}
+
+%\usepackage{fullpage}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+
+% My Packages
+\usepackage{macros}
+\usepackage{savesym}
+\savesymbol{captionbox}
+\usepackage[font={small}]{caption}
+\DeclareCaptionType{copyrightbox}
+\usepackage{subcaption}
+\restoresymbol{CAP}{captionbox}
+
+\usepackage{amsmath,amssymb}
+\usepackage{verbatim}
+\usepackage{gensymb}
+\usepackage{multirow}
+\usepackage{todonotes}
+
+
+\begin{document}
+
+\begin{frontmatter}
+\title{Sampling the P\'{o}lya-gamma Distribution with Small Shape Parameter}
+\runtitle{Dependent Multinomial Models Made Easy}
+
+
+\begin{aug}
+\author{\fnms{Scott W.} \snm{Linderman}\ead[label=e1]{swl@seas.harvard.edu}}
+\affiliation{Harvard University}
+\runauthor{S. W. Linderman}
+\end{aug}
+
+%\maketitle
+\begin{abstract}
+  Efficient sampling of the P\'{o}lya-gamma
+  distribution is critical to the success of
+  the augmentation schemes introduced by \citet{polson2013bayesian}.
+  To address this issue, \citet{windle2014sampling} develop a number
+  of sampling schemes for
+  the P\'{o}lya-gamma distribution, however they do not address the small
+  ``shape'' parameter regime. Efficient sampling in this regime
+  would enable the use of marginal estimation techniques like
+  annealed importance sampling. Moreover, since the P\'{o}lya-gamma
+  distribution is infinitely divisible, a sampler for the small
+  shape regime would enable efficient simulation of a
+  P\'{o}lya-gamma Levy process.
+\end{abstract}
+\end{frontmatter}
+
+\section{Introduction}
+The \polyagamma distribution,~$\distPolyaGamma(b)$, is parameterized
+by a ``shape'' parameter~$b$. It is defined by its Laplace transform,
+\begin{align}
+  \cosh^{-b}(\sqrt{t/2}) = \int_0^\infty \exp\{-tx\} \distPolyaGamma(x \given b) \,\mathrm{d}x.
+\end{align}
+This is simply a scaling of the~$\distJacobi(b)$ density surveyed by \citet{biane2001probability}, and defined by Laplace transform
+\begin{align}
+  \cosh^{-b}(\sqrt{2t}) &=  \int_{0}^\infty \exp\{-tx\} \distJacobi(x \given b) \, \mathrm{d}x. 
+\end{align}
+Thus, we see that if~$X \sim \distPolyaGamma(b)$ and~$Y \sim \distJacobi(b)$, then~$X \disteq Y/4$. \citet{polson2013bayesian}
+define exponentially tilted versions of these distributions as follows,
+\begin{align}
+  \distJacobi(x \given b, z) &= \cosh^b(z) e^{-xz^2/2} \, \distJacobi(x \given b), \\
+  \distPolyaGamma(x \given b, z) &= \cosh^b(z/2) e^{-xz^2/2} \, \distPolyaGamma(x \given b) \\
+  &= \tfrac{1}{4} \distJacobi(x \given b, z/2).
+\end{align}
+
+The~$\distJacobi(b)$ density can be written as an infinite alternating sum,
+\begin{align}
+  \distJacobi(x \given b) &= \frac{2^b}{\Gamma(b)}
+  \sum_{n=0}^\infty (-1)^n \frac{\Gamma(n+b)}{\Gamma(n+1)} \frac{(2n+b)}{\sqrt{2\pi x^3}}
+  \exp\left\{- \frac{(2n+b)^2}{2x} \right\}.
+\end{align}
+
+
+Following \citet{windle2014sampling}, we derive a sampling algorithm for
+the~$\distJacobi(b,z)$ distribution and then scale the result to obtain
+a sample from the corresponding \polyagamma distribution. We focus specifically
+on the case where~$b<1$.
+
+\section{Sampling~$\distJacobi(b)$ for~$b<1$}
+Empirically, it appears that the \polyagamma density is largely determined
+by the first three terms of thi sum when~$b<1$.
+\todo[inline]{substantiate this with
+  a plot of (earthmover?) distance between distributions}
+
+Considering only the first three terms, we have
+\begin{align}
+  \distJacobi(x \given b) &\approx \frac{2^b}{\Gamma(b) \sqrt{2 \pi x^3}}
+  \bigg[  b\Gamma(b)       \exp \left \{-\frac{b^2}{2x}      \right \} \\
+\nonumber & \qquad \qquad \qquad -b\Gamma(b) (2+b) \exp \left \{ -\frac{(2+b)^2}{2x} \right \} \\
+\nonumber & \qquad \qquad \qquad +b\Gamma(b)\frac{(1+b)}{2} (4+b) \exp \left \{ -\frac{(4+b)^2}{2x} \right \}
+\bigg] \\
+  &= \frac{b 2^b}{\sqrt{2 \pi x^3}} \exp \left \{-\frac{b^2}{2x} \right \}
+  \bigg[1
+        - (2+b) \exp \left \{-\frac{4+4b}{2x} \right \}
+        + \frac{(1+b)(4+b)}{2}  \exp \left \{-\frac{16+8b}{2x} \right \}
+  \bigg]
+\end{align}
+
+For small~$x$, the latter terms inside the square brackets are much less than one,
+leading to the follow approximation,
+\begin{align}
+  \distJacobi(x \given b) &\approx \frac{b 2^b}{\sqrt{2 \pi x^3}} \exp \left \{-\frac{b^2}{2x} \right \} \quad \text{ when } x \ll 1.
+\end{align}
+Note that this is a
+scaled inverse gamma distribution,
+\begin{align}
+  2^b \, \distInvGamma(x \given \tfrac{1}{2}, \tfrac{b^2}{2})
+  &= 2^b \frac{\sqrt{b^2/2}}{\Gamma(\tfrac{1}{2})} x^{-\tfrac{3}{2}} \exp\left\{-\frac{b^2}{2x} \right\} \\
+  &= \frac{b 2^b}{\sqrt{2 \pi x^3}} \exp\left\{-\frac{b^2}{2x} \right\}.
+  %\\
+  %&\approx \distJacobi(x \given b) \quad \text{ when } x \ll 1.
+\end{align}
+
+For larger~$x$, the second and third terms are nonnegligible. In particular, the sum of these terms is between zero and one, and leads to much lighter tails than those
+produced by an inverse gamma distribution. Empirically, these tails
+appear to be effectively exponential. That is, for~$x>1$ we can make the following approximation,
+\begin{align}
+  \distJacobi(x \given b) &\approx \exp \left \{c(b) + m(b) x \right \}
+  \quad \text{ when } x>1,
+\end{align}
+for some functions~$c(b)$ and~$m(b)$ that do not depend on~$x$.
+We will derive such functions by linearizing the log density.
+We have,
+\begin{align}
+  \log \distJacobi(x \given b) &\approx \log \left( \frac{b 2^b}{\sqrt{2 \pi}} \right)
+   -\frac{b^2}{2x} - \tfrac{3}{2} \log x
+  +\log \left( 1
+        - (2+b) \exp \left \{-\frac{4+4b}{2x} \right \}
+        + \frac{(1+b)(4+b)}{2}  \exp \left \{-\frac{16+8b}{2x} \right \}
+        \right)
+\end{align}
+
+
+
+
+
+
+
+    
+\bibliography{draft}
+\bibliographystyle{unsrtnat}
+
+\end{document} 
+
