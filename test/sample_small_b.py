@@ -116,11 +116,44 @@ def invgauss_envelope(xs, b):
     igausscdf = cumtrapz(igausspdf / (2**b), xs) if np.size(xs) > 1 else None
     return igausspdf, igausslogpdf, igausscdf
 
+def plot_terms_inside_brackets(bs=[0.5]):
+    """
+    This is a horrible name, but in the draft we show that
+    the J^*(x | b) density is well approximated by an
+    inverse gamma distribution times a scaling factor,
+    [1-(2+b)exp{-(4+4b)/2x} + (1+b)(4+b)/2 exp{-(16+8b)/2x} - o(1)]
+
+    We know this factor (if it included its infinitely many terms)
+    would have to be a number between 0 and 1. Empirically, it
+    seems to decay approximately exponentially. Let's try to come
+    up with a parametric approximation for this term.
+    """
+    xmax = 5.
+    xs = np.linspace(1e-3, xmax, 1000)
+
+    plt.figure()
+    for b in bs:
+        trm0 = 1
+        trm1 = -(2+b) * np.exp(-(4+4*b)/(2*xs))
+        trm2 = (1+b)*(4+b)/2 * np.exp(-(16+8*b)/(2*xs))
+
+        y = trm0 + trm1 + trm2
+        plt.plot(xs,np.log(y), color='b')
+
+        # plt.plot(xs, np.log(y) + -b**2 / xs, '-r', lw=2)
+        plt.plot(xs,  -b**2 / xs, '-r', lw=2)
+    plt.plot(xs,  -1.5 * np.log(xs), '-g', lw=2)
+    plt.plot(xs, np.log(y) + -b**2 / xs + -1.5 * np.log(xs), '-k', lw=2)
+
+    plt.ylim(-8,4)
+    # plt.legend(loc="upper right")
+    plt.show()
+
 def plot_partial_sums(b=0.5):
     xmax = 5.
     xs = np.linspace(1e-3, xmax, 1000)
 
-    Nmax = 20
+    Nmax = 5
     ns = np.arange(Nmax)
     Sns = np.array([Sn(xs,n,b) for n in ns])
 
@@ -145,6 +178,14 @@ def plot_partial_sums(b=0.5):
     for n in xrange(1,Nmax):
         plt.plot(xs, np.sum(Sns[:n], axis=0),
                  color=cm(np.clip(float(n)/Nmax, 0.3, 0.7)),
+                 label="n=%d" % n)
+    plt.legend()
+
+    plt.figure()
+    cm = get_cmap("Greys")
+    for n in xrange(Nmax):
+        plt.plot(xs, Sns[n],
+                 color=cm(np.clip(1-float(n)/Nmax, 0.3, 0.7)),
                  label="n=%d" % n)
     plt.legend()
 
@@ -210,6 +251,7 @@ def plot_pdf_and_envelope():
     B = 5
     bs = np.linspace(0.1, 0.95, B)
 
+    slopes = approx_log_pgpdf_slope(bs)
 
     plt.figure(figsize=(12,12))
     for i,b in enumerate(bs):
@@ -246,7 +288,7 @@ def plot_pdf_and_envelope():
         if i == B-1:
             plt.xlabel("x")
 
-    plt.savefig("smallb_pdf_and_envelopes.png")
+    # plt.savefig("smallb_pdf_and_envelopes.png")
 
 
     # plt.subplot(133)
@@ -255,6 +297,97 @@ def plot_pdf_and_envelope():
     # plt.plot(xs[:ithr-1], igcdf, 'b')
     # plt.plot(xs[ithr:-1], igcdf[ithr] + igausscdf, 'r')
 
+def plot_pdf_and_exp_envelope():
+    xmax = 5.
+    xs = np.linspace(1e-3, xmax, 1000)
+    Nmax = 20
+    ns = np.arange(Nmax)
+    B = 5
+    bs = np.linspace(0.1, 0.95, B)
 
-plot_envelopes()
-plot_pdf_and_envelope()
+    slopes, offsets = approx_log_pgpdf_slope(bs)
+
+    plt.figure(figsize=(12,12))
+    for i,b in enumerate(bs):
+        # Get the terms of the sum
+        Sns = np.array([Sn(xs,n,b) for n in ns])
+
+        # Plot the pdf and the envelopes
+        pgpdf = np.sum(Sns, axis=0)
+        pgcdf = cumtrapz(pgpdf, xs)
+        pglogpdf = np.log(pgpdf)
+
+        # Find the point of inflection of the log pdf
+        thr = b**2/6.
+        ithr = np.argmin((xs-thr)**2)
+
+        # Find the gradient o the log pdf
+        dlogpdf = -1.5 * xs**(-1) + b**2/2 * xs**(-2.)
+        d2logpdf = 1.5 * xs**(-2) - b**2 * xs**(-3.)
+
+        # Get envelopes
+        igpdf, iglogpdf, igcdf = invgamma_envelope(xs, b)
+
+        # Exponential envelope for right tail
+        logexppdf = slopes[i] * xs + offsets[i]
+        exppdf = np.exp(logexppdf)
+
+        plt.subplot(B,2,2*i+1)
+        plt.plot(xs, pgpdf, 'k')
+        plt.plot(xs, igpdf, 'b')
+        plt.plot(xs, exppdf,  'g')
+        plt.ylabel("p(x | b=%.1f)" % b)
+        if i == B-1:
+            plt.xlabel("x")
+
+        plt.subplot(B,2,2*i+2)
+        plt.plot(xs, pglogpdf, 'k')
+        plt.plot(xs, iglogpdf, 'b')
+        plt.plot(xs, logexppdf, 'g')
+        # plt.plot(xs, dlogpdf, color='orange')
+        # plt.plot(xs, d2logpdf, color='purple')
+        plt.plot(xs, np.zeros_like(xs), '--k', alpha=0.5)
+        # plt.ylim(pglogpdf[-1],5)
+        plt.ylim(-9,5)
+        plt.ylabel("log p(x | b=%.1f)" % b)
+        if i == B-1:
+            plt.xlabel("x")
+
+    # plt.savefig("smallb_pdf_and_envelopes.png")
+
+
+    # plt.subplot(133)
+
+    # plt.plot(xs[1:], pgcdf, 'k')
+    # plt.plot(xs[:ithr-1], igcdf, 'b')
+    # plt.plot(xs[ithr:-1], igcdf[ithr] + igausscdf, 'r')
+
+def approx_log_pgpdf_slope(bs):
+    xs = np.array([0.8, 5.])
+    Nmax = 20
+    ns = np.arange(Nmax)
+
+    offsets = np.zeros_like(bs)
+    slopes = np.zeros_like(bs)
+    for i,b in enumerate(bs):
+        # Get the terms of the sum
+        Sns = np.array([Sn(xs,n,b) for n in ns])
+        pgpdf = np.sum(Sns, axis=0)
+        pglogpdf = np.log(pgpdf)
+
+        slopes[i] = (pglogpdf[1] - pglogpdf[0]) / (xs[1] - xs[0])
+        offsets[i] = pglogpdf[0] - slopes[i]*xs[0]
+
+    print "Slopes of log pdf: "
+    for b,slope,offset in zip(bs, slopes, offsets):
+        print "b: ", b, "\t slope: ", slope, "\t off: ", offset
+
+
+    return slopes, offsets
+
+plot_terms_inside_brackets()
+# plot_partial_sums(b=0.9)
+# plot_envelopes()
+# plot_pdf_and_envelope()
+# plot_pdf_and_exp_envelope()
+# approx_log_pgpdf_slope(np.linspace(0.1, 0.95, 5))
