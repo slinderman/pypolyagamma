@@ -116,7 +116,7 @@ def invgauss_envelope(xs, b):
     igausscdf = cumtrapz(igausspdf / (2**b), xs) if np.size(xs) > 1 else None
     return igausspdf, igausslogpdf, igausscdf
 
-def plot_terms_inside_brackets(bs=[0.5]):
+def plot_terms_inside_brackets(bs=[0.001, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
     """
     This is a horrible name, but in the draft we show that
     the J^*(x | b) density is well approximated by an
@@ -129,24 +129,54 @@ def plot_terms_inside_brackets(bs=[0.5]):
     up with a parametric approximation for this term.
     """
     xmax = 5.
-    xs = np.linspace(1e-3, xmax, 1000)
+    xs = np.linspace(0.001, xmax, 1000)
+
+    Nmax = 20
+    ns = np.arange(Nmax)
 
     plt.figure()
     for b in bs:
-        trm0 = 1
-        trm1 = -(2+b) * np.exp(-(4+4*b)/(2*xs))
-        trm2 = (1+b)*(4+b)/2 * np.exp(-(16+8*b)/(2*xs))
+        # trm0 = 1
+        # trm1 = -(2+b) * np.exp(-(4+4*b)/(2*xs))
+        # trm2 = (1+b)*(4+b)/2 * np.exp(-(16+8*b)/(2*xs))
 
-        y = trm0 + trm1 + trm2
-        plt.plot(xs,np.log(y), color='b')
+        # import ipdb; ipdb.set_trace()
+        y = 0
+        Z = b * gamma(b) * np.exp(-b**2/(2*xs)) * 2**b / gamma(b) / np.sqrt(2*np.pi*xs**3)
+        Sns = np.array([Sn(xs,n,b) for n in ns])
+        for trmn in Sns:
+            y += trmn / Z
+
+        # y = trm0 + trm1 + trm2
+        ln = plt.plot(xs,np.log(y), label="b=%.2f" % b)[0]
+        col = ln.get_color()
+
+        # Fit a polynomial to this function
+        # D = 1
+        # coeff = np.polyfit(xs, np.log(y), deg=D)
+        # print coeff
+        # polyapprox = 0
+        # for i in xrange(D+1):
+        #     polyapprox += xs**(D-i) * coeff[i]
+        # plt.plot(xs, polyapprox, ls='--', color=col)
+
+        # Plot the approx to the log
+        z = y - 1
+        logapprox = z
+        # logapprox = z - z**2 / 2. + z**3 / 3
+        plt.plot(xs, logapprox, ls='--', color=col)
+
 
         # plt.plot(xs, np.log(y) + -b**2 / xs, '-r', lw=2)
-        plt.plot(xs,  -b**2 / xs, '-r', lw=2)
-    plt.plot(xs,  -1.5 * np.log(xs), '-g', lw=2)
-    plt.plot(xs, np.log(y) + -b**2 / xs + -1.5 * np.log(xs), '-k', lw=2)
+    # plt.plot(xs,  -b**2 / xs, '-r', lw=2)
+    # plt.plot(xs,  -1.5 * np.log(xs), '-g', lw=2)
+    # plt.plot(xs, np.log(y) + -b**2 / xs + -1.5 * np.log(xs), '-k', lw=2)
+
 
     plt.ylim(-8,4)
-    # plt.legend(loc="upper right")
+    plt.xlabel("x")
+    plt.ylabel("log(1+...) terms")
+    plt.legend(loc="upper right")
     plt.show()
 
 def plot_partial_sums(b=0.5):
