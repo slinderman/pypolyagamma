@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import pypolyagamma as ppg
 from scipy.special import gamma, gammaln
 from scipy.integrate import cumtrapz
@@ -116,7 +118,7 @@ def invgauss_envelope(xs, b):
     igausscdf = cumtrapz(igausspdf / (2**b), xs) if np.size(xs) > 1 else None
     return igausspdf, igausslogpdf, igausscdf
 
-def plot_terms_inside_brackets(bs=[0.001, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
+def plot_terms_inside_brackets(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
     """
     This is a horrible name, but in the draft we show that
     the J^*(x | b) density is well approximated by an
@@ -128,56 +130,186 @@ def plot_terms_inside_brackets(bs=[0.001, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
     seems to decay approximately exponentially. Let's try to come
     up with a parametric approximation for this term.
     """
-    xmax = 5.
+
+    xmax = 10.
     xs = np.linspace(0.001, xmax, 1000)
 
     Nmax = 20
     ns = np.arange(Nmax)
 
-    plt.figure()
+    import palettable
+    fig = plt.figure(figsize=(4,3))
+    plt.gca().set_color_cycle(palettable.colorbrewer.sequential.YlOrRd_9.mpl_colors)
     for b in bs:
-        # trm0 = 1
-        # trm1 = -(2+b) * np.exp(-(4+4*b)/(2*xs))
-        # trm2 = (1+b)*(4+b)/2 * np.exp(-(16+8*b)/(2*xs))
-
-        # import ipdb; ipdb.set_trace()
         y = 0
         Z = b * gamma(b) * np.exp(-b**2/(2*xs)) * 2**b / gamma(b) / np.sqrt(2*np.pi*xs**3)
         Sns = np.array([Sn(xs,n,b) for n in ns])
         for trmn in Sns:
             y += trmn / Z
 
-        # y = trm0 + trm1 + trm2
-        ln = plt.plot(xs,np.log(y), label="b=%.2f" % b)[0]
+        ln = plt.plot(xs,1-y, lw=2, label="b=%.2f" % b)[0]
+
+    plt.ylim(-1e-3, 1+1e-3)
+    plt.xlabel("$x$")
+    plt.ylabel("$\Psi(x \\, | \\,  b)$")
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+    plt.savefig("psi.pdf")
+
+    plt.show()
+
+def fit_psi_cdf(bs=[ 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
+    xmax = 10.
+    xs = np.linspace(0.001, xmax, 1000)
+
+    Nmax = 20
+    ns = np.arange(Nmax)
+
+    # gparams = []
+    # igparams = []
+    params = []
+    plt.figure()
+    for b in bs:
+        print "b=",b
+        y = 0
+        Z = b * gamma(b) * np.exp(-b**2/(2*xs)) * 2**b / gamma(b) / np.sqrt(2*np.pi*xs**3)
+        Sns = np.array([Sn(xs,n,b) for n in ns])
+        for trmn in Sns:
+            y += trmn / Z
+
+        ln = plt.plot(xs,(y), label="b=%.2f" % b)[0]
         col = ln.get_color()
 
-        # Fit a polynomial to this function
-        # D = 1
-        # coeff = np.polyfit(xs, np.log(y), deg=D)
-        # print coeff
-        # polyapprox = 0
-        # for i in xrange(D+1):
-        #     polyapprox += xs**(D-i) * coeff[i]
-        # plt.plot(xs, polyapprox, ls='--', color=col)
+        # Make a distribution object for this cdf\
+        import scipy.stats as stats
+        cdf = 1-y
+        # class theoretical_dist(stats.rv_continuous):
+        #     def _cdf(self, x, *args):
+        #         return np.interp(x, xs, cdf, left=0., right=1.)
+        #
+        # dist = theoretical_dist()
+        # samples = dist.rvs(size=(10000,))
 
-        # Plot the approx to the log
-        z = y - 1
-        logapprox = z
-        # logapprox = z - z**2 / 2. + z**3 / 3
-        plt.plot(xs, logapprox, ls='--', color=col)
+        # Define an objective for fitting a cdf
+        def gamma_obj(logprms):
+            prms = np.exp(logprms)
+            shape, scale = prms[0], prms[1]
+            gdist = stats.gamma(shape, scale=scale)
+            return gdist.cdf(xs) - cdf
+
+        def invgamma_obj(logprms):
+            prms = np.exp(logprms)
+            shape, scale = prms[0], prms[1]
+            gdist = stats.invgamma(shape, scale=scale)
+            return gdist.cdf(xs) - cdf
+
+        def gengamma_obj(logprms):
+            prms = np.exp(logprms)
+            shape, shape2, scale = prms[0], prms[1], prms[2]
+            dist = stats.gengamma(shape, shape2, scale=scale)
+            return dist.cdf(xs) - cdf
+
+        def weibull_obj(logprms):
+            prms = np.exp(logprms)
+            shape, scale = prms[0], prms[1]
+            dist = stats.weibull_min(shape, scale=scale)
+            return dist.cdf(xs) - cdf
+
+        def exp_obj(logprms):
+            prms = np.exp(logprms)
+            scale = prms[0]
+            dist = stats.expon(scale=scale)
+            return dist.cdf(xs) - cdf
+
+        def tanh_obj(prms):
+            a,b = prms[0], prms[1]
+            f =  (1+ np.tanh(a+b*xs))/2.
+            return f - cdf
+
+        # Now fit a few distributions to this and see how well they work
+        from scipy.optimize import leastsq
+        # gparam = stats.gamma.fit(samples)
+        # gparam, _ = leastsq(gamma_obj, np.zeros(2))
+        # gparam = np.exp(gparam)
+        # gparams.append(gparam)
+        # gdist = stats.gamma(gparam[0], scale=gparam[1])
+        # plt.plot(xs, 1-gdist.cdf(xs), '--', color=col)
+
+        # igparam = stats.invgamma.fit(samples)
+        # igparam, _ = leastsq(invgamma_obj, np.zeros(2))
+        # igparam = np.exp(igparam)
+        # igparams.append(igparam)
+        # igdist = stats.invgamma(igparam[0], scale=igparam[1])
+        # plt.plot(xs, 1-igdist.cdf(xs), '-.', color=col)
+
+        # param, _ = leastsq(gengamma_obj, np.zeros(3))
+        # param = np.exp(param)
+        # params.append(param)
+        # dist = stats.gengamma(param[0], param[1], scale=param[2])
+        # plt.plot(xs, 1-dist.cdf(xs), '-.', color=col)
+
+        # param, _ = leastsq(weibull_obj, np.zeros(2))
+        # param = np.exp(param)
+        # params.append(param)
+        # dist = stats.weibull_min(param[0], scale=param[1])
+        # plt.plot(xs, 1-dist.cdf(xs), '-.', color=col)
+
+        # param, _ = leastsq(exp_obj, np.zeros(1))
+        # param = np.exp(param)
+        # params.append(param)
+        # dist = stats.expon(scale=param[0])
+        # plt.plot(xs, 1-dist.cdf(xs), '-.', color=col)
+
+        import ipdb; ipdb.set_trace()
+        param, _ = leastsq(tanh_obj, np.zeros(2))
+        params.append(param)
+        f = (1 + np.tanh(param[0]+param[1]*xs))/2.
+        plt.plot(xs, 1-f, '-.', color=col)
 
 
-        # plt.plot(xs, np.log(y) + -b**2 / xs, '-r', lw=2)
-    # plt.plot(xs,  -b**2 / xs, '-r', lw=2)
-    # plt.plot(xs,  -1.5 * np.log(xs), '-g', lw=2)
-    # plt.plot(xs, np.log(y) + -b**2 / xs + -1.5 * np.log(xs), '-k', lw=2)
-
-
-    plt.ylim(-8,4)
     plt.xlabel("x")
-    plt.ylabel("log(1+...) terms")
     plt.legend(loc="upper right")
     plt.show()
+
+    # Plot the shapes and scales vs b
+    # shapes = [gp[0] for gp in gparams]
+    # scales = [gp[1] for gp in gparams]
+    # plt.figure()
+    # plt.subplot(221)
+    # plt.plot(bs, shapes)
+    # plt.ylabel("shape(b)")
+    #
+    # plt.subplot(222)
+    # plt.plot(bs, scales)
+    # plt.ylabel("scale(b)")
+    #
+    # ishapes = [gp[0] for gp in igparams]
+    # iscales = [gp[1] for gp in igparams]
+    #
+    # plt.subplot(223)
+    # plt.plot(bs, ishapes)
+    # plt.ylabel("ishape(b)")
+    #
+    # plt.subplot(224)
+    # plt.plot(bs, iscales)
+    # plt.ylabel("iscale(b)")
+
+    # ggshapes = [gp[0] for gp in params]
+    # ggshapes2 = [gp[1] for gp in params]
+    # ggscales = [gp[2] for gp in params]
+    # plt.figure()
+    # plt.subplot(131)
+    # plt.plot(bs, ggshapes)
+    # plt.ylabel("GG shape(b)")
+    #
+    # plt.subplot(132)
+    # plt.plot(bs, ggshapes2)
+    # plt.ylabel("GG shape2(b)")
+    #
+    # plt.subplot(133)
+    # plt.plot(bs, ggscales)
+    # plt.ylabel("GG scale(b)")
+
 
 def plot_partial_sums(b=0.5):
     xmax = 5.
@@ -298,12 +430,12 @@ def plot_pdf_and_envelope():
         ithr = np.argmin((xs-thr)**2)
 
         # Get envelopes
-        igpdf, iglogpdf, igcdf = invgamma_envelope(xs[:ithr], b)
+        igpdf, iglogpdf, igcdf = invgamma_envelope(xs, b)
         igausspdf, igausslogpdf, igausscdf = invgauss_envelope(xs[ithr:], b)
 
         plt.subplot(B,2,2*i+1)
         plt.plot(xs, pgpdf, 'k')
-        plt.plot(xs[:ithr], igpdf, 'b')
+        plt.plot(xs, igpdf, 'b')
         plt.plot(xs[ithr:], igausspdf,  'r')
         plt.ylabel("p(x | b=%.1f)" % b)
         if i == B-1:
@@ -311,7 +443,7 @@ def plot_pdf_and_envelope():
 
         plt.subplot(B,2,2*i+2)
         plt.plot(xs, pglogpdf, 'k')
-        plt.plot(xs[:ithr], iglogpdf, 'b')
+        plt.plot(xs, iglogpdf, 'b')
         plt.plot(xs[ithr:], igausslogpdf, 'r')
         plt.ylim(pglogpdf[-1],5)
         plt.ylabel("log p(x | b=%.1f)" % b)
@@ -415,9 +547,72 @@ def approx_log_pgpdf_slope(bs):
 
     return slopes, offsets
 
-plot_terms_inside_brackets()
+def plot_acceptance_probability():
+    zmin, zmax = -1.5, 1.5
+    bmin, bmax = 0, 1
+    zs = np.linspace(zmin,zmax,100)
+    bs = np.linspace(bmin,bmax,50)
+    Zs, Bs = np.meshgrid(zs, bs)
+    c = (1+np.exp(-2*abs(Zs)))**Bs
+    p = 1./c
+
+    fig = plt.figure(figsize=(4,2.))
+    # ax = fig.add_subplot(111)
+    im = plt.imshow(p, cmap="Reds", vmin=0.5, vmax=1., extent=(zmin,zmax,bmax,bmin))
+    plt.xlabel("$z$")
+    plt.ylabel("$b$")
+    plt.yticks((0, 0.25, 0.5, 0.75, 1.0))
+    plt.title("Acceptance Probability")
+
+    # create an axes on the right side of ax. The width of cax will be 5%
+    # of ax and the padding between cax and ax will be fixed at 0.05 inch.
+    divider = make_axes_locatable(plt.gca())
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = plt.colorbar(im, cax=cax, ticks=(0.5, 0.75, 1.0))
+
+    plt.tight_layout()
+    plt.savefig("acceptance.pdf")
+    plt.show()
+
+def quantile_comparison(b):
+    """
+    Compare our rejection sampling algorithm with the truncated
+    sum of gammas algorithm.
+    """
+    n = 10000
+    zs = 1.0 * np.ones(n, dtype=np.float)
+
+    from pypolyagamma import pypolyagamma
+    x_rej = pypolyagamma.sample_pg_small_b(b, zs)
+    # print x_rej
+
+    # Sample with the sum of gammas approach
+    ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2**16), trunc=200)
+    x_sum = np.zeros(n)
+    ppg.pgdrawv(b * np.ones(n, dtype=np.float),
+                zs,
+                x_sum)
+    # print x_sum
+
+    from scipy.stats.mstats import mquantiles
+    quantiles = np.arange(0.1, 1.0, 0.1)
+    q_rej = mquantiles(x_rej, quantiles, alphap=0., betap=1.)
+    q_sum = mquantiles(x_sum, quantiles, alphap=0., betap=1.)
+    lim = max(q_rej.max(), q_sum.max())
+
+    plt.figure()
+    plt.plot(q_rej, q_sum, lw=2)
+    plt.plot([0, 1.1*lim], [0, 1.1*lim], '--k')
+    plt.show()
+
+
+bs = np.linspace(0.05,1.0,10)
+# plot_terms_inside_brackets()
 # plot_partial_sums(b=0.9)
 # plot_envelopes()
 # plot_pdf_and_envelope()
 # plot_pdf_and_exp_envelope()
 # approx_log_pgpdf_slope(np.linspace(0.1, 0.95, 5))
+# fit_psi_cdf(bs)
+# plot_acceptance_probability()
+quantile_comparison(0.01)

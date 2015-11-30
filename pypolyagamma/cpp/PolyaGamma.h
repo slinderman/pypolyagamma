@@ -47,7 +47,7 @@ class PolyaGamma
  public:
 
   // Constructors.
-  PolyaGamma(int trunc = 40);
+  PolyaGamma(int trunc = 200);
 
   // Draw.
   // double draw(double n, double z, RNG& r);

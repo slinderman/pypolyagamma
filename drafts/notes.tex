@@ -1,0 +1,118 @@
+\appendix
+
+\section{Squeeze functions}
+To bound~$1-\Psi(x \given b)$, let,
+\begin{align}
+1-\Psi(x \given b) 
+  &=
+    \sum_{n=0}^\infty (-1)^n \frac{\Gamma(n+b)}{\Gamma(n+1)} \frac{2n+b}{\Gamma(b+1)}
+    \exp\left\{- \frac{2n(n+b)}{x} \right\} \\
+  &= \sum_{n=0}^\infty (-1)^n \psi_n(x \given b).
+\end{align}
+We have,
+\begin{align}
+\frac{1}{n} \leq \frac{\Gamma(n+b)}{\Gamma(n+1)} \leq \frac{1}{n^{1-b}} \leq 1,
+\end{align}
+and,
+\begin{align}
+1 \leq \frac{1}{\Gamma(b+1)} \leq 1.13,
+\end{align}
+for~$b \in [0,1]$. Finally,
+\begin{align}
+1 - \frac{2n(n+b)}{x} \leq \exp \left\{ - \frac{2n(n+b)}{x}   \right\} \leq 1 - \frac{n(n+b)}{x}.
+\end{align}
+Together these imply,
+\begin{align}
+\frac{1}{n} \left( 1 - \frac{2n(n+b)}{x} \right) \leq 
+&\psi_n(x \given b) \leq
+\frac{1.13}{n^{1-b}} \left( 1 - \frac{n(n+b)}{x} \right)  \leq 
+1.13 \left( 1 - \frac{n(n+b)}{x} \right) \\
+\frac{1}{n} -\frac{2(n+b)}{x} \leq 
+&\psi_n(x \given b) \leq
+\frac{1.13xn^b - n^{b+1}(n+b)}{n x } \leq 
+1.13 -\frac{1.13 n(n+b)}{x}
+\end{align}
+To get a lower bound on~${1-\Psi(x \given b)}$, we lower bound the even terms 
+and upper bound the odd (negated) terms.
+For the weaker upper bound, we have,
+\begin{align}
+1-\Psi(x \given b) 
+  &= 1 + \sum_{j=0}^\infty \psi_{2j+2}(x \given b) - \psi_{2j+1}(x \given b) \\
+  &\leq 1 + \sum_{j=0}^\infty 1.13 - \frac{(2j+2)(2j+2+b)}{x} - \frac{1}{2j+1} + \frac{2(2j+1+b)}{x} \\
+  &= 1 + \sum_{j=0}^\infty \frac{1.13(2j+1)-1}{2j+1} + \frac{4j+2+2b - (2j+2)(2j+2+b)}{x} \\ 
+  &= 1 + \sum_{j=0}^\infty \frac{1.13(2j+1)-1}{2j+1} + \frac{4j+2+2b - 2j^2 -4j -2jb -4j - 4 -2b}{x} \\
+  &= 1 + \sum_{j=0}^\infty \frac{1.13(2j+1)-1}{2j+1} + \frac{-2j^2 -2j(2+b) - 2}{x}
+\end{align}
+% \begin{align}
+% 1 - \Psi(x \given b) &= 1 + \sum_{n=1}^\infty (-1)^n \psi_n(x \given b) \\
+%   &\leq 1 + \sum_{n=1}^\infty - \frac{1.13xn^b - n^{b+1}(n+b)}{n x} + \frac{x - 2(n+1)(n+1+b)}{(n+1)x} \\ 
+% &= 1 + \sum_{n=1}^\infty \frac{-1.13xn^b(n+1) + n^{b+1}(n+1)(n+b) + xn - 2n(n+1)(n+1+b)}{n(n+1)x} \\
+% &= 1 + \sum_{n=1}^\infty \frac{-1.13n^{b}}{(n+1)} + \frac{-1.13n^b}{n(n+1)} 
+% + \frac{n^{b}(n+b)}{x} + \frac{1}{(n+1)} - \frac{2(n+1+b)}{x}
+% \end{align}
+
+\section{Series expansion of~$\Psi(x \given b)$}
+
+\begin{align}
+((-1)^n (b+2 n) \Gamma(b+n))/(\Gamma(b+1) \Gamma(n+1))
+-(2 ((-1)^n n (b+n) (b+2 n) \Gamma(b+n)))/(x (\Gamma(b+1) \Gamma(n+1)))
++(2 (-1)^n n^2 (b+n)^2 (b+2 n) \Gamma(b+n))/(x^2 \Gamma(b+1) \Gamma(n+1))
+-(4 ((-1)^n n^3 (b+n)^3 (b+2 n) \Gamma(b+n)))/(3 x^3 (\Gamma(b+1) \Gamma(n+1)))
++(2 (-1)^n n^4 (b+n)^4 (b+2 n) \Gamma(b+n))/(3 x^4 \Gamma(b+1) \Gamma(n+1))
++O((1/x)^5)
+\end{align}
+
+\section{Trying to approximate the density}
+
+\begin{align}
+\psi(x \given b) = \frac{\mathrm{d} \Psi(x \given b)}{\mathrm{d} x} &= 
+    \sum_{n=0}^\infty (-1)^{n+1} \frac{\Gamma(n+b)}{\Gamma(n+1)} \frac{2n+b}{\Gamma(b+1)}
+    \left( \frac{2n(n+b)}{x^2}\right) \exp\left\{- \frac{2n(n+b)}{x} \right\}  \\
+  &= \frac{2}{b} x^{-2} \sum_{n=0}^\infty (-1)^{n+1} \frac{(2n+b)(n+b)}{\mathrm{B}(n,b)}
+     \exp\left\{- \frac{2n(n+b)}{x} \right\}  
+\end{align}
+
+I think the sum (with the exception of the~$x^{-3/2}$ term) should look approximately like
+~$e^{-cx}$ for~$x>1$. 
+\begin{align}
+  \distJacobi(x \given b) &= \frac{2^b}{\Gamma(b)} \frac{1}{\sqrt{2\pi x^3}}
+  \sum_{n=0}^\infty (-1)^n \frac{\Gamma(n+b)}{\Gamma(n+1)} (2n+b)
+  \exp\left\{- \frac{(2n+b)^2}{2x} \right\} 
+\end{align}
+For~$n \geq 1$, the ratio of gamma functions is bounded by,
+\begin{align}
+\frac{\Gamma(n+b)}{\Gamma(n+1)} &\geq \frac{\Gamma(n)}{\Gamma(n+1)} 
+= \frac{\Gamma(n)}{n\Gamma(n)} = \frac{1}{n}.
+\end{align}
+The ratio of gamma functions looks something like, 
+\begin{align}
+\frac{\Gamma(n+b)}{\Gamma(n+1)} &= \exp\left\{ \log \Gamma(n+b) - \log \Gamma(n+1) \right\} \\
+&\approx \exp \left\{ (n+b) \log (n+b) - (n+b) - [(n+1)\log(n+1) -(n+1)] \right\} \\
+&\approx \exp \left\{ (n+b) (\log n + b/n) - (n+b) - [(n+1) (\log n + 1/n)  -(n+1)] \right\} \\
+&= \exp \left\{ (n+b-n-1) \log n + (n+b)(b/n-1)  - (n+1)(1/n -1) \right\} \\
+&= \exp \left\{ (b-1) \log n + b -n +b^2/n -b - (1 -n + 1/n -1  )   \right\} \\
+&= \exp \left\{ (b-1) \log n - \frac{1-b^2}{n}   \right\} \\
+&= \frac{1}{n^{1-b}} e^{-\frac{1-b^2}{n}}
+\end{align}
+Where we made the approximation,~$\log(n+b) \approx \log n + b/n$
+When~$b=1$ these terms are obviously equal and their ratio is 1. 
+When~$b=0$ the ratio is equal to~$n^{-1}$. For intermediate values,
+the ratio has to be somewhere in between. 
+We can make this more precise with Stirling's approximation.
+
+\section{Laplace transforms}
+\begin{align}
+  &= 
+\left( \frac{
+\left(\exp \{z \}+1 \right) 
+\left( 2 \exp \left\{ \sqrt{\frac{z^2/2 +t}{2}}\right\} \right)}  
+{ \left( 2 \exp \left\{ \frac{z}{2} \right\}\right) 
+\left(\exp \left\{ 2\sqrt{\frac{z^2/2 +t}{2}}\right\}+1 \right)}
+\right)^b \\
+  &= \left(   \frac{
+2 \left[\exp \left\{ z+ \sqrt{\frac{z^2/2 +t}{2}}\right\} + \exp \{\sqrt{\frac{z^2/2 +t}{2}} \} \right]}
+{ 
+2 \left[\exp \left\{ z/2+ 2\sqrt{\frac{z^2/2 +t}{2}}\right\} + \exp \{z/2 \} \right]
+}
+\right)^b
+\end{align}
