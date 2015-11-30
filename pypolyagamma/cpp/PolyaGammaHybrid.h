@@ -4,6 +4,7 @@
 #include "PolyaGamma.h"
 #include "PolyaGammaAlt.h"
 #include "PolyaGammaSP.h"
+#include "PolyaGammaSmallB.h"
 
 #ifndef POLYAGAMMAHYBRID__
 #define POLYAGAMMAHYBRID__
@@ -20,9 +21,10 @@ public:
     ~PolyaGammaHybrid();
 
 
-    PolyaGamma    dv;
-    PolyaGammaAlt al;
-    PolyaGammaSP  sp;
+    PolyaGamma       dv;
+    PolyaGammaAlt    al;
+    PolyaGammaSP     sp;
+    PolyaGammaSmallB sb;
 
     void set_trunc(int trunc);
     Real draw(Real b, Real z);
@@ -78,7 +80,7 @@ Real PolyaGammaHybrid<Real>::draw(Real b_, Real z_)
     }
     else if (b > 0)
     {
-	    x = dv.draw_sum_of_gammas(b, z, *rng);
+	    x = sb.draw(b, z, *rng);
     }
     else
     {

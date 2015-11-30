@@ -1,5 +1,5 @@
 # distutils: language = c++
-# distutils: sources = pypolyagamma/cpp/PolyaGamma.cpp pypolyagamma/cpp/PolyaGammaAlt.cpp pypolyagamma/cpp/PolyaGammaSP.cpp pypolyagamma/cpp/InvertY.cpp pypolyagamma/cpp/include/RNG.cpp pypolyagamma/cpp/include/GRNG.cpp
+# distutils: sources = pypolyagamma/cpp/PolyaGamma.cpp pypolyagamma/cpp/PolyaGammaSmallB.cpp pypolyagamma/cpp/PolyaGammaAlt.cpp pypolyagamma/cpp/PolyaGammaSP.cpp pypolyagamma/cpp/InvertY.cpp pypolyagamma/cpp/include/RNG.cpp pypolyagamma/cpp/include/GRNG.cpp
 # distutils: libraries = stdc++ gsl gslcblas
 # distutils: library_dirs = /usr/local/lib
 # distutils: include_dirs = pypolyagamma/cpp/include /usr/local/include

@@ -406,15 +406,11 @@ def quantile_comparison(b):
 
     from pypolyagamma import pypolyagamma
     x_rej = pypolyagamma.sample_pg_small_b(b, zs)
-    # print x_rej
 
     # Sample with the sum of gammas approach
     ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2**16), trunc=200)
     x_sum = np.zeros(n)
-    ppg.pgdrawv(b * np.ones(n, dtype=np.float),
-                zs,
-                x_sum)
-    # print x_sum
+    ppg.pgdrawv(b * np.ones(n, dtype=np.float), zs, x_sum)
 
     from scipy.stats.mstats import mquantiles
     quantiles = np.arange(0.1, 1.0, 0.1)
@@ -435,4 +431,4 @@ bs = np.linspace(0.05,1.0,10)
 # fit_psi_cdf(bs)
 # plot_psi(bs)
 # plot_acceptance_probability()
-quantile_comparison(0.1)
+quantile_comparison(0.5)
