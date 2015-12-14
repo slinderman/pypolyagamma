@@ -322,7 +322,11 @@ The scaling constant simplifies to,
 When~$z=0$, this equals~$2^b$, the same scaling constant as above. When~$|z|>0$, the scaling constant is still greater than one, as required for rejection sampling, but it is even less than~$2^b$, making an even better proposal distribution. Figure~\ref{fig:acceptance} plots the acceptance probability as a function of~$b$ and~$z$.
 
 
-\subsection{Approximating the conditional acceptance threshold}
+\subsection{Determining Acceptance}
+In order to accept or reject a proposal, we must evaluate whether a uniform random variate 
+falls below the curve~$1-\Psi(x \given b)$, for given~$x$ and~$b$. This function is 
+not analytically tractable, however, it is still possible to determine whether or not to accept 
+with finite computation.
 Let,
 \begin{align}
 1-\Psi(x \given b) 
@@ -331,6 +335,43 @@ Let,
     \exp\left\{- \frac{2n(n+b)}{x} \right\} \\
   &= \sum_{n=0}^\infty (-1)^n \psi_n(x \given b).
 \end{align}
+
+The terms~$\psi_n(x \given b)$ are eventually monotonically decreasing as a function of~$n$ 
+for all fixed values of~$x$ and~$b$. To see this, note,
+\begin{align}
+\frac{\psi_{n+1}(x \given b)}{\psi_n(x \given b)} &= 
+\frac{ \Gamma(n+1) \Gamma(n+1+b) (2n + 2 + b) \exp \left \{ - \frac{2(n+1)(n+1+b)}{x} \right \}}
+{ \Gamma(n+2) \Gamma(n+b) (2n + b) \exp \left \{ - \frac{2n(n+b)}{x} \right \}} \\
+&= 
+\frac{(n+b)(2n+b+2)}{(n+1)(2n+b)} 
+\exp \left \{ -\frac{4n +2b +2}{x}  \right \} \\
+&= \ell(n) r(n),
+\end{align}
+where
+\begin{align}
+\ell(n) &= \frac{2n^2+nb+2n+b + 2(n+1)b + b^2}{2n^2+nb+2n+b}, \\
+r(n) &= \exp \left \{ -\frac{4n +2b +2}{x}  \right \}.
+\end{align}
+Observe that~$\ell(n)$ is monotonically decreasing toward one as~$n$ approaches infinity. 
+The rate of convergence is polynomial since the numerator is~${O(n^2)}$.
+In contrast,~$r(n)$ converges to zero exponentially quickly as~$n$ approaches infinity. 
+Thus, there exists a threshold~$m$ such that,
+\begin{align}
+\psi_{n+1}(x \given b) \leq \psi_{n}(x \given b) \quad \forall \, n \geq m.
+\end{align}
+
+The existence of this threshold implies that,
+\begin{align}
+1 - \Psi(x \given b) &\leq \sum_{n=0}^i (-1)^n \psi_n(x \given b) \quad \forall~\text{ even } i > m,
+\end{align} 
+and
+\begin{align}
+1 - \Psi(x \given b) &\geq \sum_{n=0}^i (-1)^n \psi_n(x \given b) \quad \forall~\text{ odd } i > m.
+\end{align} 
+Thus, to determine acceptance of uniform variate~$u$, we evaluate the first~$m$ terms and then iteratively add more terms 
+until we find an even index~$i$ whose partial sum is less than~$u$, upon which we reject, or an odd index~$i$ whose partial
+sum is greater than~$u$, at which point we accept. 
+
 We have,
 \begin{align}
 \psi_0(x \given b) &= 1 \\
