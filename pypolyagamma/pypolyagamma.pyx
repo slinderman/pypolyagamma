@@ -10,24 +10,18 @@
 # cython: cdivision = True
 
 from libc.math cimport exp, pow, sqrt
-
 from libc.stdio cimport printf
 
 from cython.parallel import prange, parallel
 from libcpp.vector cimport vector
 
-from cython.operator cimport dereference as deref
 from openmp cimport omp_get_num_threads, omp_get_thread_num, omp_get_max_threads
 
 import numpy as np
 cimport numpy as np
 from scipy.special import gammaln, gamma
-from scipy.misc import logsumexp
 
 import numpy.random as npr
-
-# from util import invgaussian_transform, _one_minus_psi_coeffs, _one_minus_psi_given_coeffs
-# from pypolyagamma.util cimport invgaussian_transform, _one_minus_psi_coeffs, _one_minus_psi_given_coeffs
 
 # Import C++ classes from RNG.h
 cdef extern from "cpp/include/RNG.hpp":

@@ -355,24 +355,45 @@ r(n) &= \exp \left \{ -\frac{4n +2b +2}{x}  \right \}.
 Observe that~$\ell(n)$ is monotonically decreasing toward one as~$n$ approaches infinity. 
 The rate of convergence is polynomial since the numerator is~${O(n^2)}$.
 In contrast,~$r(n)$ converges to zero exponentially quickly as~$n$ approaches infinity. 
-Thus, there exists a threshold~$m$ such that,
+Thus, there exists a threshold~$\theta_n$ such that,
 \begin{align}
-\psi_{n+1}(x \given b) \leq \psi_{n}(x \given b) \quad \forall \, n \geq m.
+\psi_{n+1}(x \given b) \leq \psi_{n}(x \given b) \quad \forall \, n \geq \theta_n.
 \end{align}
 
 The existence of this threshold implies that,
 \begin{align}
-1 - \Psi(x \given b) &\leq \sum_{n=0}^i (-1)^n \psi_n(x \given b) \quad \forall~\text{ even } i > m,
+1 - \Psi(x \given b) &\leq \sum_{n=0}^i (-1)^n \psi_n(x \given b) \quad \forall~\text{ even } i \geq \theta_n,
 \end{align} 
 and
 \begin{align}
-1 - \Psi(x \given b) &\geq \sum_{n=0}^i (-1)^n \psi_n(x \given b) \quad \forall~\text{ odd } i > m.
+1 - \Psi(x \given b) &\geq \sum_{n=0}^i (-1)^n \psi_n(x \given b) \quad \forall~\text{ odd } i \geq \theta_n.
 \end{align} 
-Thus, to determine acceptance of uniform variate~$u$, we evaluate the first~$m$ terms and then iteratively add more terms 
-until we find an even index~$i$ whose partial sum is less than~$u$, upon which we reject, or an odd index~$i$ whose partial
-sum is greater than~$u$, at which point we accept. 
+Thus, to determine acceptance of uniform variate~$u$, we evaluate the
+first~$\theta_n$ terms and then iteratively add more terms until we find an
+even index~$i$ whose partial sum is less than~$u$, upon which we
+reject, or an odd index~$i$ whose partial sum is greater than~$u$, at
+which point we accept.
+Figure~\ref{fig:theta_n} shows the threshold for a range ov values of~$x$ 
+and~$b$. For all reasonable values, it is safe to compute the first two
+terms and then use the alternating series method just described.
 
-We have,
+\begin{figure}
+\centering
+  \begin{subfigure}[t]{3in}
+    \centering
+    \vskip 0pt
+    \includegraphics[width=\textwidth]{n_threshold}
+  \end{subfigure}
+  \vspace{-2em}
+  \caption{The threshold,~$\theta_n$, as a function of~$x$ and~$b$. For all reasonable 
+  values of~$x$, the threshold is at most~$2$. Thus, we only need to compute~2 terms 
+  before we can use the alternating series method.
+}
+\label{fig:theta_n}
+\end{figure}
+
+Rather than computing the gamma functions in~$\psi_n$, we can expand the terms out 
+in their factorial form. We have,
 \begin{align}
 \psi_0(x \given b) &= 1 \\
 \psi_1(x \given b) &= (2+b) e^{-2(b+1) / x} \\
@@ -386,13 +407,8 @@ We have,
   % &= \left( \frac{1}{n} + \frac{b}{2(n-2)!} + o(b^2) \right) (2n+b) e^{-2n(n+b)/x}.
 \end{align}
 Higher order terms rapidly diminish extremely quickly due to the
-exponential term. In practice, the first six terms are enough to
-approximate~$1-\Psi(x \given b)$ with satisfactory precision. 
-% Thus, we have,
-% \begin{align}
-% 1-\Psi(x \given b) 
-%   &\approx 1 - (2+b) e^{-2(b+1) / x} + \frac{(1+b)(4+b)}{2} e^{-4(b+2) / x} - \frac{(2+b)(1+b)(6+b)}{6} e^{-6(b+3) / x}.
-% \end{align}
+exponential term. In practice, acceptance and rejection can often 
+be computed with under six terms.
 
 \section{Discussion}
 We have derived a rejection sampling algorithm for the \polyagamma distribution 
