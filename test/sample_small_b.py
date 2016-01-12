@@ -2,6 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib
+matplotlib.rcParams.update({'font.sans-serif' : 'Helvetica',
+                            'axes.labelsize': 9,
+                            'xtick.labelsize' : 9,
+                            'ytick.labelsize' : 9,
+                            'axes.titlesize' : 9})
+
+
+from hips.plotting.layout import create_figure, create_axis_at_location
 
 from pypolyagamma.pypolyagamma import psi_n
 from scipy.special import gamma, gammaln
@@ -37,7 +46,8 @@ def invgauss_envelope(xs, b):
     igausscdf = cumtrapz(igausspdf / (2**b), xs) if np.size(xs) > 1 else None
     return igausspdf, igausslogpdf, igausscdf
 
-def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
+def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0], oneminus=False,
+             varname="\\eta"):
     """
     In the draft we show that
     the J^*(x | b) density is well approximated by an
@@ -57,8 +67,9 @@ def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
     ns = np.arange(Nmax)
 
     import palettable
-    fig = plt.figure(figsize=(4,3))
-    plt.gca().set_color_cycle(palettable.colorbrewer.sequential.YlOrRd_9.mpl_colors)
+    fig = create_figure(figsize=(3,2), transparent=True)
+    ax = create_axis_at_location(fig, 0.6, 0.5, 2., 1.4)
+    ax.set_color_cycle(palettable.colorbrewer.sequential.BuGn_9.mpl_colors)
     for b in bs:
         y = 0
         Z = b * gamma(b) * np.exp(-b**2/(2*xs)) * 2**b / gamma(b) / np.sqrt(2*np.pi*xs**3)
@@ -66,13 +77,17 @@ def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
         for trmn in Sns:
             y += trmn / Z
 
-        ln = plt.plot(xs,1-y, lw=2, label="b=%.2f" % b)[0]
+        if oneminus:
+            y = 1-y
+        ln = ax.plot(xs, y, lw=2, label="b=%.2f" % b)[0]
 
-    plt.ylim(-1e-3, 1+1e-3)
-    plt.xlabel("$x$")
-    plt.ylabel("$\Psi(x \\, | \\,  b)$")
-    plt.legend(loc="lower right")
-    plt.tight_layout()
+    ax.set_ylim(-1e-3, 1+1e-3)
+    ax.set_xlabel("$%s$" % varname)
+    if oneminus:
+        ax.set_ylabel("$1-\Psi(%s \\, | \\,  b)$" % varname)
+    else:
+        ax.set_ylabel("$\Psi(%s \\, | \\,  b)$" % varname)
+    plt.legend(loc="upper right", fontsize=8)
     plt.savefig("psi.pdf")
 
     plt.show()
@@ -378,21 +393,24 @@ def plot_acceptance_probability():
     c = (1+np.exp(-2*abs(Zs)))**Bs
     p = 1./c
 
-    fig = plt.figure(figsize=(4,2.))
+    from palettable.colorbrewer.sequential import BuGn_5
+    cmap = BuGn_5.mpl_colormap
+    fig = create_figure(figsize=(3,1.5), transparent=True)
+    ax = create_axis_at_location(fig, 0.6, 0.4, 1.8, .8)
     # ax = fig.add_subplot(111)
-    im = plt.imshow(p, cmap="Reds", vmin=0.5, vmax=1., extent=(zmin,zmax,bmax,bmin))
-    plt.xlabel("$z$")
-    plt.ylabel("$b$")
-    plt.yticks((0, 0.25, 0.5, 0.75, 1.0))
-    plt.title("Acceptance Probability")
+    im = ax.imshow(p, cmap=cmap, vmin=0.5, vmax=1., extent=(zmin,zmax,bmax,bmin))
+    ax.set_xlabel("$z$")
+    ax.set_ylabel("$b$")
+    ax.set_yticks((0, 0.25, 0.5, 0.75, 1.0))
+    ax.set_title("Acceptance Probability")
 
     # create an axes on the right side of ax. The width of cax will be 5%
     # of ax and the padding between cax and ax will be fixed at 0.05 inch.
-    divider = make_axes_locatable(plt.gca())
-    cax = divider.append_axes("right", size="5%", pad=0.05)
+    # divider = make_axes_locatable(plt.gca())
+    # cax = divider.append_axes("right", size="5%", pad=0.05)
+    cax = create_axis_at_location(fig, 2.5, 0.5, .1, .6)
     cbar = plt.colorbar(im, cax=cax, ticks=(0.5, 0.75, 1.0))
 
-    plt.tight_layout()
     plt.savefig("acceptance.pdf")
     plt.show()
 
@@ -424,11 +442,11 @@ def quantile_comparison(b):
     plt.show()
 
 
-bs = np.linspace(0.05,1.0,10)
+# bs = np.linspace(0.05,1.0,9)
 # plot_partial_sums(b=0.9)
 # plot_envelopes()
 # plot_pdf_and_envelope()
 # fit_psi_cdf(bs)
-# plot_psi(bs)
-# plot_acceptance_probability()
-quantile_comparison(0.5)
+plot_psi()
+plot_acceptance_probability()
+# quantile_comparison(0.5)
