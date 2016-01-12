@@ -80,6 +80,7 @@ Real PolyaGammaHybrid<Real>::draw(Real b_, Real z_)
     }
     else if (b > 0)
     {
+//        x = dv.draw_sum_of_gammas(b, z, *rng);
 	    x = sb.draw(b, z, *rng);
     }
     else

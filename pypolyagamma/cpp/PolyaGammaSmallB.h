@@ -12,7 +12,7 @@
 #include "RNG.hpp"
 #include <cmath>
 
-#define _MAXITER 10
+#define _MAXITER 100
 
 class PolyaGammaSmallB
 {
