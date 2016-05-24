@@ -47,7 +47,7 @@ def invgauss_envelope(xs, b):
     return igausspdf, igausslogpdf, igausscdf
 
 def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0], oneminus=False,
-             varname="\\eta"):
+             varname="\\omega"):
     """
     In the draft we show that
     the J^*(x | b) density is well approximated by an
@@ -68,7 +68,7 @@ def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0], oneminus=False,
 
     import palettable
     fig = create_figure(figsize=(3,2), transparent=True)
-    ax = create_axis_at_location(fig, 0.6, 0.5, 2., 1.4)
+    ax = create_axis_at_location(fig, 0.6, 0.5, 2., 1.3)
     ax.set_color_cycle(palettable.colorbrewer.sequential.BuGn_9.mpl_colors)
     for b in bs:
         y = 0
@@ -86,9 +86,9 @@ def plot_psi(bs=[0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0], oneminus=False,
     if oneminus:
         ax.set_ylabel("$1-\Psi(%s \\, | \\,  b)$" % varname)
     else:
-        ax.set_ylabel("$\Psi(%s \\, | \\,  b)$" % varname)
-    plt.legend(loc="upper right", fontsize=8)
-    plt.savefig("psi.pdf")
+        ax.set_ylabel("$\Phi(%s \\, | \\,  b)$" % varname)
+    plt.legend(loc="upper right", fontsize=8, frameon=False)
+    plt.savefig("phi.pdf")
 
     plt.show()
 
@@ -395,11 +395,15 @@ def plot_acceptance_probability():
 
     from palettable.colorbrewer.sequential import BuGn_5
     cmap = BuGn_5.mpl_colormap
-    fig = create_figure(figsize=(3,1.5), transparent=True)
-    ax = create_axis_at_location(fig, 0.6, 0.4, 1.8, .8)
+    #fig = create_figure(figsize=(3,1.5), transparent=True)
+    #ax = create_axis_at_location(fig, 0.6, 0.4, 1.8, .8)
+
+    fig = create_figure(figsize=(3.,2.), transparent=True)
+    ax = create_axis_at_location(fig, 0.6, 0.5, 1.8, 1.3)
+
     # ax = fig.add_subplot(111)
-    im = ax.imshow(p, cmap=cmap, vmin=0.5, vmax=1., extent=(zmin,zmax,bmax,bmin))
-    ax.set_xlabel("$z$")
+    im = ax.imshow(p, cmap=cmap, vmin=0.5, vmax=1., extent=(zmin,zmax,bmax,bmin), aspect=2.15)
+    ax.set_xlabel("$\psi$")
     ax.set_ylabel("$b$")
     ax.set_yticks((0, 0.25, 0.5, 0.75, 1.0))
     ax.set_title("Acceptance Probability")
@@ -408,7 +412,7 @@ def plot_acceptance_probability():
     # of ax and the padding between cax and ax will be fixed at 0.05 inch.
     # divider = make_axes_locatable(plt.gca())
     # cax = divider.append_axes("right", size="5%", pad=0.05)
-    cax = create_axis_at_location(fig, 2.5, 0.5, .1, .6)
+    cax = create_axis_at_location(fig, 2.5, 0.5, .1, 1.3)
     cbar = plt.colorbar(im, cax=cax, ticks=(0.5, 0.75, 1.0))
 
     plt.savefig("acceptance.pdf")
@@ -448,5 +452,5 @@ def quantile_comparison(b):
 # plot_pdf_and_envelope()
 # fit_psi_cdf(bs)
 plot_psi()
-plot_acceptance_probability()
+#plot_acceptance_probability()
 # quantile_comparison(0.5)
