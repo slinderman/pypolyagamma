@@ -1,6 +1,7 @@
 """
 Call the different sample methods
 """
+from __future__ import print_function
 import numpy as np
 np.random.seed(0)
 import pypolyagamma as pypolyagamma
@@ -27,4 +28,4 @@ v3 = np.zeros(n)
 seeds = np.random.randint(2**16, size=nthreads)
 ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
 pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
-print v3
+print(v3)

@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 from Cython.Build import cythonize
 
 import numpy as np
@@ -26,4 +26,3 @@ setup(
     keywords=['monte-carlo', 'polya', 'gamma'],
     platforms="ALL",
 )
-

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
@@ -104,7 +105,7 @@ def fit_psi_cdf(bs=[ 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]):
     params = []
     plt.figure()
     for b in bs:
-        print "b=",b
+        print("b=", b)
         y = 0
         Z = b * gamma(b) * np.exp(-b**2/(2*xs)) * 2**b / gamma(b) / np.sqrt(2*np.pi*xs**3)
         Sns = np.array([psi_n(xs,n,b) for n in ns])
@@ -265,7 +266,7 @@ def plot_partial_sums(b=0.5):
         return dec
 
     isdec = _check_decreasing(np.abs(Sns))
-    print "Decreasing until cdf = ", pgcdf[np.amin(np.where(~isdec)[0])]
+    print("Decreasing until cdf = ", pgcdf[np.amin(np.where(~isdec)[0])])
 
 
     # Plot the partial sums

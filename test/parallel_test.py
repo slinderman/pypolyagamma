@@ -1,6 +1,7 @@
 """
 Call the different sample methods
 """
+from __future__ import print_function
 import numpy as np
 np.random.seed(0)
 import pypolyagamma as ppg
@@ -19,10 +20,10 @@ v3 = np.zeros(n)
 # print v3
 
 # Now try it where they all have the same seed
-print "Same seed"
+print("Same seed")
 nthreads = ppg.get_omp_num_threads()
-print "N threads: ", nthreads
+print("N threads: ", nthreads)
 seeds = 5 * np.ones(nthreads, dtype=np.uint)
 ppgs = [ppg.PyPolyaGamma(seed) for seed in seeds]
 ppg.pgdrawvpar(ppgs, b, z, v3)
-print v3
+print(v3)
