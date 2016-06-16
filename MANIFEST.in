@@ -2,3 +2,7 @@ recursive-include pypolyagamma *.pyx
 recursive-include pypolyagamma *.cpp
 recursive-include pypolyagamma *.h
 recursive-include pypolyagamma *.hpp
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.so
