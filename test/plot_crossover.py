@@ -1,4 +1,5 @@
 # Plot the crossover at which the terms in 1-Psi(x|b) become monotonically decreasing
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
@@ -14,9 +15,9 @@ for i,x in enumerate(xs):
         ell = (2*ns**2 + ns*b + 2*ns + b + 2*(ns+1)*b + b**2) / (2*ns**2 + ns*b + 2*ns + b)
         r = np.exp(-(4*ns+2*b + 2)/x)
         thr[i,j] = np.amin(np.where(ell*r < 1))
-        print "x: ", x, " b: ", b, " n: ", thr[i,j]
-    
-        
+        print("x: ", x, " b: ", b, " n: ", thr[i,j])
+
+
 
 plt.figure(figsize=(3,3))
 
