@@ -9,20 +9,22 @@ except ImportError:
     print("Please install numpy.")
 
 # Dealing with Cython
-USE_CYTHON = os.environ.get('USE_CYTHON', False)
-ext = '.pyx' if USE_CYTHON else '.cpp'
-
-extensions = [
-    Extension('pypolyagamma.pypolyagamma',
-              ['pypolyagamma/pypolyagamma' + ext],
-              include_dirs=[np.get_include(),
-                            'pypolyagamma/cpp',
-                            'pypolyagamma/cpp/include'])
-]
-
-if USE_CYTHON:
-    from Cython.Build import cythonize
-    extensions = cythonize(extensions)
+# USE_CYTHON = os.environ.get('USE_CYTHON', False)
+# ext = '.pyx' if USE_CYTHON else '.cpp'
+#
+# extensions = [
+#     Extension('pypolyagamma.pypolyagamma',
+#               ['pypolyagamma/pypolyagamma' + ext],
+#               include_dirs=[np.get_include(),
+#                             'pypolyagamma/cpp',
+#                             'pypolyagamma/cpp/include'])
+# ]
+#
+# if USE_CYTHON:
+#     from Cython.Build import cythonize
+#     extensions = cythonize(extensions)
+from Cython.Build import cythonize
+extensions = cythonize('**/*.pyx')
 
 setup(
     name='pypolyagamma',
@@ -35,6 +37,7 @@ setup(
     license="MIT",
     packages=['pypolyagamma'],
     ext_modules=extensions,
+    include_dirs=[np.get_include()],
     install_requires=[
         'numpy',
         ],

@@ -1,9 +1,7 @@
 # distutils: language = c++
-# distutils: sources = pypolyagamma/cpp/PolyaGamma.cpp pypolyagamma/cpp/PolyaGammaSmallB.cpp pypolyagamma/cpp/PolyaGammaAlt.cpp pypolyagamma/cpp/PolyaGammaSP.cpp pypolyagamma/cpp/InvertY.cpp pypolyagamma/cpp/include/RNG.cpp pypolyagamma/cpp/include/GRNG.cpp
-# distutils: libraries = stdc++ gsl gslcblas
-# distutils: library_dirs = /usr/local/lib
-# distutils: include_dirs = pypolyagamma/cpp/include /usr/local/include
-# distutils: extra_compile_args = -O0 -w -std=c++11 -fopenmp
+# distutils: sources = pypolyagamma/cpp/PolyaGamma.cpp pypolyagamma/cpp/PolyaGammaSmallB.cpp pypolyagamma/cpp/PolyaGammaAlt.cpp pypolyagamma/cpp/PolyaGammaSP.cpp pypolyagamma/cpp/InvertY.cpp pypolyagamma/cpp/include/RNG.cpp pypolyagamma/cpp/include/GRNG.cpp gsl-2.2/rng/mt.c gsl-2.2/cdf/gamma.c gsl-2.2/cdf/gauss.c gsl-2.2/randist/bernoulli.c gsl-2.2/randist/beta.c gsl-2.2/randist/chisq.c gsl-2.2/randist/exponential.c gsl-2.2/randist/flat.c gsl-2.2/randist/gamma.c gsl-2.2/randist/gauss.c gsl-2.2/randist/gausszig.c gsl-2.2/rng/rng.c gsl-2.2/err/error.c gsl-2.2/rng/file.c gsl-2.2/specfunc/gamma.c gsl-2.2/specfunc/gamma_inc.c gsl-2.2/specfunc/erfc.c gsl-2.2/specfunc/exp.c gsl-2.2/specfunc/expint.c gsl-2.2/specfunc/trig.c gsl-2.2/specfunc/log.c gsl-2.2/specfunc/psi.c gsl-2.2/specfunc/zeta.c gsl-2.2/specfunc/elementary.c gsl-2.2/complex/math.c gsl-2.2/sys/infnan.c gsl-2.2/sys/fdiv.c gsl-2.2/sys/coerce.c gsl-2.2/err/stream.c
+# distutils: include_dirs = pypolyagamma/cpp/include gsl-2.2/gsl gsl-2.2
+# distutils: extra_compile_args = -w -fopenmp -DHAVE_INLINE
 # distutils: extra_link_args = -fopenmp
 # cython: boundscheck = False
 # cython: wraparound = False
