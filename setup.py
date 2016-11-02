@@ -33,18 +33,22 @@ if not os.path.exists(gslpath):
     shutil.move(os.path.join(thedir), gslpath)
     print('...Done!')
 
-# Run configure to copy headers to expected locations
-subprocess.run("./configure", cwd=gslpath, shell=True)
+# Check if GSL has been configured
+if not os.path.exists(os.path.join(gslpath, "config.h")):
+    # Run configure to copy headers to expected locations
+    subprocess.run("./configure", cwd=gslpath, shell=True)
 
 # Create the extensions. Manually enumerate the required
+extensions = []
+
 # PyPolyaGamma and GSL source files
-extensions = [
+extensions.append(
     Extension('pypolyagamma.pypolyagamma',
               depends=[
                   "pypolyagamma/cpp/PolyaGammaHybrid.h",
                   "pypolyagamma/cpp/include/RNG.hpp"],
-              extra_compile_args=["-w","-fopenmp", "-DHAVE_INLINE"],
-              extra_link_args=["-fopenmp"],
+              extra_compile_args=["-w", "-DHAVE_INLINE"],
+              extra_link_args=[],
               include_dirs=[
                   "pypolyagamma/cpp/include",
                   "deps/gsl",
@@ -90,7 +94,28 @@ extensions = [
                    "deps/gsl/sys/coerce.c",
                    "deps/gsl/err/stream.c"],
               )
-]
+)
+
+# Check if OpenMP is supported. If so,
+# compile the parallel extension
+USE_OPENMP = False
+if USE_OPENMP:
+    extensions.append(
+        Extension('pypolyagamma.parallel',
+                  depends=[
+                      "pypolyagamma/cpp/PolyaGammaHybrid.h",
+                      "pypolyagamma/cpp/include/RNG.hpp"
+                  ],
+                  extra_compile_args=["-w","-fopenmp", "-DHAVE_INLINE"],
+                  extra_link_args=["-fopenmp"],
+                  include_dirs=[
+                      "pypolyagamma/cpp/include",
+                      np.get_include()],
+                  language="c++",
+                  sources=[
+                      "pypolyagamma/parallel" + ext],
+                  )
+    )
 
 if USE_CYTHON:
     from Cython.Build import cythonize
