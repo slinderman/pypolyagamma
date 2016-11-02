@@ -17,6 +17,7 @@ except ImportError:
 
 # Dealing with Cython
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
+if not USE_CYTHON
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
 # Only compile with OpenMP if user asks for it
