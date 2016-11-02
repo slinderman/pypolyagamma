@@ -50,7 +50,7 @@ if not os.path.exists(gslpath):
 # Check if GSL has been configured
 if not os.path.exists(os.path.join(gslpath, "config.h")):
     # Run configure to copy headers to expected locations
-    subprocess.run("./configure", cwd=gslpath, shell=True)
+    subprocess.call("./configure", cwd=gslpath, shell=True)
 
 # Create the extensions. Manually enumerate the required
 extensions = []

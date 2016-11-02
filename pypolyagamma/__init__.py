@@ -14,8 +14,8 @@ except:
         return 1
 
     def pgdrawvpar(ppgs, ns, zs, pgs):
-        warn("PyPolyaGamma was not installed with OpenMP. Calls to 'pgdrawvpar' "
-             "will be replaced with a serial implementation.")
+        warn("PyPolyaGamma was not installed with OpenMP. Calls to 'pgdrawvpar' will "
+             "be replaced with a serial implementation.")
 
         assert isinstance(ppgs, list)
         ppg = ppgs[0]
