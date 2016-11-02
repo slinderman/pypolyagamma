@@ -5,6 +5,14 @@ https://github.com/jwindle/BayesLogit. It provides a
 Python interface for efficiently sampling Pólya-gamma
 random variates.
 
+# Background
+Pólya-gamma augmentation renders logistic count models
+conditionally conjugate with linear Gaussian priors. This
+facilitates fast Bayesian inference via Markov chain Monte
+Carlo on an extended space of Gaussian latent variables
+and Pólya-gamma auxiliary variables.  Integrating out the
+auxiliary variables leaves the original model intact. 
+
 # Demo
 
 `TODO`

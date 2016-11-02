@@ -1,5 +1,4 @@
 import os
-from warnings import warn
 
 from setuptools import setup
 from setuptools.extension import Extension
@@ -67,6 +66,13 @@ extensions.append(
                   "pypolyagamma/cpp/include",
                   "deps/gsl",
                   "deps/gsl/gsl",
+                  "deps/gsl/cdf",
+                  "deps/gsl/randist",
+                  "deps/gsl/rng",
+                  "deps/gsl/err",
+                  "deps/gsl/specfunc",
+                  "deps/gsl/complex",
+                  "deps/gsl/sys",
                   np.get_include()],
               language="c++",
               sources=[
