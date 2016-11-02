@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from warnings import warn
+from pypolyagamma.distribution import pgpdf, pgmean
 from pypolyagamma.pypolyagamma import PyRNG, PyPolyaGamma
 
 # Try to import the parallel version, but if they didn't compile,

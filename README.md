@@ -39,6 +39,14 @@ This is the simplest way to install:
     cd pypolyagamma
     pip install -e .
 
+To check if it worked, run:
+
+    python test/sample_pg.py
+
+You should see something like:
+
+
+
 Under the hood, the intaller will download
 [GSL](https://www.gnu.org/software/gsl/),
 untar it, and place it in `deps/gsl`. It will then configure GSL and

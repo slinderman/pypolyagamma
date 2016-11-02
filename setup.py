@@ -16,21 +16,24 @@ except ImportError:
     print("Please install numpy.")
 
 # Dealing with Cython
-USE_CYTHON = os.environ.get('USE_CYTHON', False)
-if not USE_CYTHON:
-    # Make sure that the CPP files are present
-    if not os.path.exists(os.path.join("pypolyagamma", "pypolyagamma.cpp")):
-        print("pypolyagamma.cpp source file not found! Attempting to "
-              "use Cython instead")
-        ext = ".pyx"
-    else:
-        ext = ".cpp"
+# use cython if we can import it successfully
+try:
+    from Cython.Distutils import build_ext as _build_ext
+except ImportError:
+    USE_CYTHON = False
 else:
-    # Use Cython
-    ext = ".pyx"
+    USE_CYTHON = True
 
 # Only compile with OpenMP if user asks for it
 USE_OPENMP = os.environ.get('USE_OPENMP', False)
+
+#  If not using Cython, make sure the cpp files are present
+ext = ".pyx" if USE_CYTHON else ".cpp"
+if not USE_CYTHON:
+    # Make sure that the CPP files are present
+    assert os.path.exists(os.path.join("pypolyagamma", "pypolyagamma.cpp"))
+    if USE_OPENMP:
+        assert os.path.exists(os.path.join("pypolyagamma", "parallel.cpp"))
 
 # download GSL if we don't have it in deps
 gslurl = 'http://open-source-box.org/gsl/gsl-latest.tar.gz'

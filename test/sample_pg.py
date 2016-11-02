@@ -9,14 +9,14 @@ import pypolyagamma as pypolyagamma
 def test_no_seed():
     ppg = pypolyagamma.PyPolyaGamma()
     v1 = ppg.pgdraw(1., 1.)
-    print(v1)
+    return True
 
 # Call the single sample
 def test_single_draw():
     np.random.seed(0)
     ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2 ** 16))
     v1 = ppg.pgdraw(1., 1.)
-    print(v1)
+    return True
 
 # Sample a vector
 def test_vector_draw():
@@ -29,7 +29,7 @@ def test_vector_draw():
     a = 14*np.ones(n, dtype=np.float)
     b = 0*np.ones(n, dtype=np.float)
     ppg.pgdrawv(a, b, v2)
-    print(v2)
+    return True
 
 
 def test_parallel():
@@ -44,11 +44,61 @@ def test_parallel():
     seeds = np.random.randint(2**16, size=nthreads)
     ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
     pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
-    print(v3)
+    return True
 
+def ks_test(b=1.0, c=0.0, N_smpls=10000, N_pts=10000):
+    """
+    Kolmogorov-Smirnov test. We can't calculate the CDF exactly,
+    but we can do a pretty good job with numerical integration.
+    """
+    # Estimate the true CDF
+    oms = np.linspace(1e-5, 3.0, N_pts)
+    pdf = pypolyagamma.pgpdf(oms, b, c, trunc=200)
+    cdf = lambda x: min(np.trapz(pdf[oms < x], oms[oms < x]), 1.0)
+
+    # Draw samples
+    ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2 ** 16))
+    smpls = 1e-3 * np.ones(N_smpls)
+    ppg.pgdrawv(b * np.ones(N_smpls),  c * np.ones(N_smpls), smpls)
+
+    # TODO: Not sure why this always gives a p-value of zero
+    from scipy.stats import kstest
+    print(kstest(smpls, cdf))
+
+# test samples against the density
+def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
+    # Draw samples from the PG(1,0) distributions
+    ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2 ** 16))
+    smpls = np.zeros(N_smpls)
+    ppg.pgdrawv(np.ones(N_smpls), np.zeros(N_smpls), smpls)
+
+    #
+    bins = np.linspace(0, 2.0, 50)
+    centers = 0.5 * (bins[1:] + bins[:-1])
+    p_centers = pypolyagamma.pgpdf(centers, b, c)
+    empirical_pdf, _ = np.histogram(smpls, bins, normed=True)
+
+    err = (empirical_pdf - p_centers) / p_centers
+    assert np.all(np.abs(err) < 5.0)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.hist(smpls, bins=50, normed=True, alpha=0.5)
+
+        # Plot high resolution density
+        oms = np.linspace(1e-3, 2.0, 1000)
+        pdf = pypolyagamma.pgpdf(oms, b, c)
+        plt.plot(oms, pdf, '-b', lw=2)
+        plt.show()
+    return True
+
+def run_tests():
+    assert test_no_seed()
+    assert test_single_draw()
+    assert test_vector_draw()
+    assert test_parallel()
+    assert test_density()
 
 if __name__ == "__main__":
-    test_no_seed()
-    test_single_draw()
-    test_vector_draw()
-    test_parallel()
+    run_tests()
+    # ks_test()
