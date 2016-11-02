@@ -48,8 +48,13 @@ if not os.path.exists(gslpath):
 
 # Check if GSL has been configured
 if not os.path.exists(os.path.join(gslpath, "config.h")):
-    # Run configure to copy headers to expected locations
+    # Run configure to make config.h
     subprocess.call("./configure", cwd=gslpath, shell=True)
+
+# Check if the GSL headers have been symlinked
+if not os.path.exists(os.path.join(gslpath, "gsl", "gsl_rng.h")):
+    # Run make to symlink the headers
+    subprocess.call("make", cwd=os.path.join(gslpath, "gsl"), shell=True)
 
 # Create the extensions. Manually enumerate the required
 extensions = []
@@ -66,16 +71,6 @@ extensions.append(
                   "pypolyagamma/cpp/include",
                   "deps/gsl",
                   "deps/gsl/gsl",
-                  "deps/gsl/block",
-                  "deps/gsl/vector",
-                  "deps/gsl/matrix",
-                  "deps/gsl/cdf",
-                  "deps/gsl/randist",
-                  "deps/gsl/rng",
-                  "deps/gsl/err",
-                  "deps/gsl/specfunc",
-                  "deps/gsl/complex",
-                  "deps/gsl/sys",
                   np.get_include()],
               language="c++",
               sources=[
