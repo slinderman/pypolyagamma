@@ -6,12 +6,26 @@ Python interface for efficiently sampling Pólya-gamma
 random variates.
 
 # Background
-Pólya-gamma augmentation renders logistic count models
-conditionally conjugate with linear Gaussian priors. This
-facilitates fast Bayesian inference via Markov chain Monte
-Carlo on an extended space of Gaussian latent variables
-and Pólya-gamma auxiliary variables.  Integrating out the
-auxiliary variables leaves the original model intact. 
+Pólya-gamma augmentation is a method of performing
+fast and simple Bayesian inference in models with
+Gaussian latent variables and count observations.
+While such models are non-conjugate, if it has the
+right form (specifically, if it is a Bernoulli, binomial,
+or negative binomial with a logistic link function),
+we can use introduce a set of Pólya-gamma
+auxiliary variables that render it conditionally conjugate.
+This facilitates fast Gibbs sampling algorithms on an
+extended space of Gaussian latent variables
+and Pólya-gamma auxiliary variables, where integrating out the
+auxiliary variables leaves the original model intact.
+
+Given the auxiliary variables, the latent Gaussian variables
+have a Gaussian conditional distribution. Likewise, given
+the Gaussian latent variables and the observed count data,
+the auxiliary variables have a Pólya-gamma conditional distribution.
+Thus, to implement the Gibbs sampling algorithm, we must be
+able to efficiently sample Pólya-gamma random variates. This
+library provides code to do exactly that.
 
 # Demo
 
