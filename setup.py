@@ -1,4 +1,5 @@
 import os
+from warnings import warn
 
 from setuptools import setup
 from setuptools.extension import Extension
@@ -17,8 +18,17 @@ except ImportError:
 
 # Dealing with Cython
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
-if not USE_CYTHON
-ext = '.pyx' if USE_CYTHON else '.cpp'
+if not USE_CYTHON:
+    # Make sure that the CPP files are present
+    if not os.path.exists(os.path.join("pypolyagamma", "pypolyagamma.cpp")):
+        print("pypolyagamma.cpp source file not found! Attempting to "
+              "use Cython instead")
+        ext = ".pyx"
+    else:
+        ext = ".cpp"
+else:
+    # Use Cython
+    ext = ".pyx"
 
 # Only compile with OpenMP if user asks for it
 USE_OPENMP = os.environ.get('USE_OPENMP', False)
@@ -100,8 +110,7 @@ extensions.append(
               )
 )
 
-# Check if OpenMP is supported. If so,
-# compile the parallel extension
+# If OpenMP is requested, compile the parallel extension
 if USE_OPENMP:
     extensions.append(
         Extension('pypolyagamma.parallel',
