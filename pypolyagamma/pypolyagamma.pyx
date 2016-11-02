@@ -4,8 +4,6 @@
 
 # Fill in the RNG class to Python
 cdef class PyRNG:
-    # cdef RNG *thisptr
-
     def __cinit__(self, unsigned long seed=0):
         self.thisptr = new RNG(seed)
 

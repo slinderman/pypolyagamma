@@ -19,6 +19,9 @@ except ImportError:
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
+# Only compile with OpenMP if user asks for it
+USE_OPENMP = os.environ.get('USE_OPENMP', False)
+
 # download GSL if we don't have it in deps
 gslurl = 'http://open-source-box.org/gsl/gsl-latest.tar.gz'
 gsltarpath = os.path.join('deps', 'gsl-latest.tar.gz')
@@ -98,7 +101,6 @@ extensions.append(
 
 # Check if OpenMP is supported. If so,
 # compile the parallel extension
-USE_OPENMP = False
 if USE_OPENMP:
     extensions.append(
         Extension('pypolyagamma.parallel',
