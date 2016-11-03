@@ -150,7 +150,7 @@ setup(
     license="MIT",
     packages=['pypolyagamma'],
     ext_modules=extensions,
-    install_requires=['numpy',],
+    install_requires=['numpy', 'scipy'],
     classifiers=[
         'Intended Audience :: Science/Research',
         'Programming Language :: Python',
