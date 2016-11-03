@@ -98,6 +98,7 @@ def run_tests():
     assert test_vector_draw()
     assert test_parallel()
     assert test_density()
+    print("Tests passed!")
 
 if __name__ == "__main__":
     run_tests()

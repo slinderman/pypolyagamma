@@ -41,11 +41,9 @@ This is the simplest way to install:
 
 To check if it worked, run:
 
-    python test/sample_pg.py
+    python test/basic.py
 
-You should see something like:
-
-
+If it prints `Tests passed!` then you're good to go!
 
 Under the hood, the intaller will download
 [GSL](https://www.gnu.org/software/gsl/),
