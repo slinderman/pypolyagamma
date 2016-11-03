@@ -7,6 +7,7 @@ from pypolyagamma.pypolyagamma import PyRNG, PyPolyaGamma
 # revert to the serial versions
 try:
     from pypolyagamma.parallel import pgdrawvpar, get_omp_num_threads
+    USE_OPENMP=True
 except:
     def get_omp_num_threads():
         warn("PyPolyaGamma was not installed with OpenMP. Calls to 'get_omp_num_threads' "
@@ -22,3 +23,5 @@ except:
         ppg = ppgs[0]
         ppg.pgdrawv(ns, zs, pgs)
 
+
+    USE_OPENMP = False
