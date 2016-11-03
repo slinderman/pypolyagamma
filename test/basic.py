@@ -2,24 +2,34 @@
 Call the different sample methods
 """
 from __future__ import print_function
+import sys
 import numpy as np
 import pypolyagamma as pypolyagamma
 
+
 # No seed
-def test_no_seed():
+def test_no_seed(verbose=False):
     ppg = pypolyagamma.PyPolyaGamma()
     v1 = ppg.pgdraw(1., 1.)
+
+    if verbose:
+        print(v1)
+
     return True
 
 # Call the single sample
-def test_single_draw():
+def test_single_draw(verbose=False):
     np.random.seed(0)
     ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2 ** 16))
     v1 = ppg.pgdraw(1., 1.)
+
+    if verbose:
+        print(v1)
+
     return True
 
 # Sample a vector
-def test_vector_draw():
+def test_vector_draw(verbose=False):
     np.random.seed(0)
     ppg = pypolyagamma.PyPolyaGamma(np.random.randint(2 ** 16))
 
@@ -29,10 +39,13 @@ def test_vector_draw():
     a = 14*np.ones(n, dtype=np.float)
     b = 0*np.ones(n, dtype=np.float)
     ppg.pgdrawv(a, b, v2)
+
+    if verbose:
+        print(v2)
     return True
 
 
-def test_parallel():
+def test_parallel(verbose=False):
     # Call the parallel vectorized version
     np.random.seed(0)
 
@@ -44,6 +57,9 @@ def test_parallel():
     seeds = np.random.randint(2**16, size=nthreads)
     ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
     pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    if verbose:
+        print(v3)
     return True
 
 def ks_test(b=1.0, c=0.0, N_smpls=10000, N_pts=10000):
@@ -92,14 +108,15 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
         plt.show()
     return True
 
-def run_tests():
-    assert test_no_seed()
-    assert test_single_draw()
-    assert test_vector_draw()
-    assert test_parallel()
+def run_tests(verbose=False):
+    assert test_no_seed(verbose)
+    assert test_single_draw(verbose)
+    assert test_vector_draw(verbose)
+    assert test_parallel(verbose)
     assert test_density()
     print("Tests passed!")
 
 if __name__ == "__main__":
-    run_tests()
+    verbose = len(sys.argv) > 1 and (sys.argv[1] == '-v' or sys.argv[1] == "--verbose")
+    run_tests(verbose)
     # ks_test()
