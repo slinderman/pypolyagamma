@@ -65,7 +65,7 @@ Under the hood, this will instantiate Pólya-gamma auxiliary variables
 and perform conditionally-conjugate Gibbs sampling. We can visualize
 the inferred parameters in terms of the implied probability for each
 point in the input space.
-![Bernoulli Regression](https://raw.githubusercontent.com/slinderman/pypolyagamma/simplegsl/aux/bernoulli_regression.png)
+![Bernoulli Regression](https://raw.githubusercontent.com/slinderman/pypolyagamma/v1.1/aux/bernoulli_regression.png)
 
 
 
@@ -113,7 +113,7 @@ for i in range(1, N_samples):
 
 For this simple example, we can compute the true posterior
 and compare the samples to the target density. 
-![Binomial](https://raw.githubusercontent.com/slinderman/pypolyagamma/simplegsl/aux/binomial.png)
+![Binomial](https://raw.githubusercontent.com/slinderman/pypolyagamma/master/aux/binomial.png)
 
 # Manual Installation
 If you're a developer, you can also install from source:
