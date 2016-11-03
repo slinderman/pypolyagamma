@@ -57,9 +57,7 @@ class BasicRNG {
  public:
 
   // Constructors and destructors.
-  //BasicRNG();
   BasicRNG(unsigned long seed);
-  //BasicRNG(const BasicRNG& rng);
 
   virtual ~BasicRNG()
     { gsl_rng_free (r); }

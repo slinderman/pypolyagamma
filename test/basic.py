@@ -44,7 +44,6 @@ def test_vector_draw(verbose=False):
         print(v2)
     return True
 
-
 def test_parallel(verbose=False):
     # Call the parallel vectorized version
     np.random.seed(0)
@@ -88,14 +87,16 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
     smpls = np.zeros(N_smpls)
     ppg.pgdrawv(np.ones(N_smpls), np.zeros(N_smpls), smpls)
 
-    #
+    # Compute the empirical PDF
     bins = np.linspace(0, 2.0, 50)
     centers = 0.5 * (bins[1:] + bins[:-1])
     p_centers = pypolyagamma.pgpdf(centers, b, c)
     empirical_pdf, _ = np.histogram(smpls, bins, normed=True)
 
+    # Check that the empirical pdf is close to the true pdf
     err = (empirical_pdf - p_centers) / p_centers
-    assert np.all(np.abs(err) < 10.0), "Max error or {} exceeds tolerance of 5.0".format(abs(err).max())
+    assert np.all(np.abs(err) < 10.0), \
+        "Max error of {} exceeds tolerance of 5.0".format(abs(err).max())
 
     if plot:
         import matplotlib.pyplot as plt
