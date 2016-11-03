@@ -54,3 +54,4 @@ docs/_build/
 target/
 
 pypolyagamma/pypolyagamma.cpp
+pypolyagamma/parallel.cpp
