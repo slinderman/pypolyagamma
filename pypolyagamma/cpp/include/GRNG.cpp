@@ -13,7 +13,7 @@
 BasicRNG::BasicRNG(unsigned long seed)
 {
   r = gsl_rng_alloc(gsl_rng_mt19937);
-//  gsl_rng_set (r, seed);
+  gsl_rng_set (r, seed);
 }
 
 //BasicRNG::BasicRNG(const BasicRNG& rng)
