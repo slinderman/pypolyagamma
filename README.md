@@ -12,7 +12,7 @@ Gaussian latent variables and count observations.
 While such models are non-conjugate, if it has the
 right form (specifically, if it is a Bernoulli, binomial,
 negative binomial, or multinomial with a logistic link function),
-we can use introduce a set of Pólya-gamma
+we can introduce a set of Pólya-gamma
 auxiliary variables that render it conditionally conjugate.
 This facilitates fast Gibbs sampling algorithms on an
 extended space of Gaussian latent variables
@@ -29,7 +29,7 @@ library provides code to do exactly that.
 
 The augmented density, the non-Gaussian marginal, and the Gaussian
 conditionals are illustrated in the figure below. In this case, the posterior
-is from a simple Binomial model. Next, we'll show how to perform
+is from a simple binomial model. Next, we'll show how to perform
 Gibbs sampling for such a model.
 
 ![Marginals](https://raw.githubusercontent.com/slinderman/pypolyagamma/simplegsl/aux/marginals.png)
