@@ -11,7 +11,7 @@ fast and simple Bayesian inference in models with
 Gaussian latent variables and count observations.
 While such models are non-conjugate, if it has the
 right form (specifically, if it is a Bernoulli, binomial,
-or negative binomial with a logistic link function),
+negative binomial, or multinomial with a logistic link function),
 we can use introduce a set of Pólya-gamma
 auxiliary variables that render it conditionally conjugate.
 This facilitates fast Gibbs sampling algorithms on an
@@ -27,11 +27,22 @@ Thus, to implement the Gibbs sampling algorithm, we must be
 able to efficiently sample Pólya-gamma random variates. This
 library provides code to do exactly that.
 
-This is illustrated in the figure below, which shows the posterior
-under a simple Binomial model. Next, we'll show how to perform
+The augmented density, the non-Gaussian marginal, and the Gaussian
+conditionals are illustrated in the figure below. In this case, the posterior
+is from a simple Binomial model. Next, we'll show how to perform
 Gibbs sampling for such a model.
 
 ![Marginals](https://raw.githubusercontent.com/slinderman/pypolyagamma/simplegsl/aux/marginals.png)
+
+For more information, check out these references:
+
+Polson, Nicholas G., James G. Scott, and Jesse Windle. "Bayesian inference for logistic models using Pólya–Gamma latent variables." _Journal of the American statistical Association_ 108.504 (2013): 1339-1349.
+
+Windle, Jesse, Nicholas G. Polson, and James G. Scott. "Sampling Polya-Gamma random variates: alternate and approximate techniques." _arXiv preprint arXiv:1405.0506_ (2014).
+
+Linderman, Scott, Matthew Johnson, and Ryan P. Adams. "Dependent Multinomial Models Made Easy: Stick-Breaking with the Polya-gamma Augmentation." _Advances in Neural Information Processing Systems_. 2015. (also see our github repo, [pgmult](https://github.com/HIPS/pgmult))
+
+Linderman, Scott W., Ryan P. Adams, and Jonathan W. Pillow. "Bayesian latent structure discovery from multi-neuron recordings." _Advances in Neural Information Processing Systems (NIPS)_ (2016). (also see our github repo, [pyglm](https://github.com/slinderman/pyglm))
 
 # Demo
 Here's a simple example of inference in a binomial model
