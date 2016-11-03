@@ -41,7 +41,30 @@ Gibbs sampling for such a model.
 See below for more references and links.
 
 # Demo
-Here's a simple example of inference in a binomial model
+For convenience, we have created classes for simple
+count regression models, like the Bernoulli, binomial, negative
+binomial, and multinomial (with stick breaking) observation
+models. For example, you can fit a Bernoulli regression as follows:
+
+```python
+from pypolyagamma import BernoulliRegression
+D_obs = 1     # Observation dimension
+D_latent = 2  # Latent dimension
+reg = BernoulliRegression(D_obs, D_latent)
+
+# Given X, an NxD_obs array of real-valued inputs,
+# and Y, and Nx1 array of binary observations. Fit
+# the linear model y_n ~ Bern(sigma(Ax_n + b)),
+# where sigma is the logistic function.
+samples = []
+for _ in range(100):
+   reg.resample((X,Y))
+   samples.append((reg.A, reg.b))
+```
+Under the hood, this will instantiate Pólya-gamma auxiliary variables
+and perform conditionally-conjugate Gibbs sampling.
+
+Here's how you can manually perform inference in a simple binomial model
 with `N=10` counts and probability `p=logistic(x)`, with
 a standard normal prior on `x`.
 

@@ -25,7 +25,7 @@ def _collect(r):
     return r.A.copy(), r.b.copy(), r.log_likelihood((X, y)).sum()
 
 def _update(r):
-    r.resample([(X,y)])
+    r.resample((X,y))
     return _collect(r)
 
 smpls = [_collect(test_reg)]
