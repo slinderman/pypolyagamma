@@ -119,18 +119,20 @@ will be in `/usr/local/bin` by default.
 
 To sample in parallel, call the `pgdrawvpar` method:
 
-    n = 10             # Number of variates to sample
-    b = np.ones(n)     # Vector of shape parameters
-    c = np.zeros(n)    # Vector of tilting parameters
-    out = np.empty(n)  # Outputs
+```python
+n = 10             # Number of variates to sample
+b = np.ones(n)     # Vector of shape parameters
+c = np.zeros(n)    # Vector of tilting parameters
+out = np.empty(n)  # Outputs
 
-    # Construct a set of PolyaGamma objects for sampling
-    nthreads = 8
-    seeds = np.random.randint(2**16, size=nthreads)
-    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+# Construct a set of PolyaGamma objects for sampling
+nthreads = 8
+seeds = np.random.randint(2**16, size=nthreads)
+ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
 
-    # Sample in parallel
-    pypolyagamma.pgdrawvpar(ppgs, b, c, out)
+# Sample in parallel
+pypolyagamma.pgdrawvpar(ppgs, b, c, out)
+```
 
 If you haven't installed with OpenMP, this function will
 revert to the serial sampler.
