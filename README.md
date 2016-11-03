@@ -3,7 +3,11 @@
 This is a Cython port of Jesse Windle's code at
 https://github.com/jwindle/BayesLogit. It provides a
 Python interface for efficiently sampling Pólya-gamma
-random variates.
+random variates. Install with:
+
+    pip install pypolyagamma
+
+Please open issues if you have any trouble!
 
 # Background
 Pólya-gamma augmentation is a method of performing
@@ -83,13 +87,7 @@ For this simple example, we can compute the true posterior
 and compare the samples to the target density. 
 ![Binomial](https://raw.githubusercontent.com/slinderman/pypolyagamma/simplegsl/aux/binomial.png)
 
-# Installation
-
-You can now install with `pip install pypolyagamma`. Be patient, the installation
-may take some time as it has to download some dependencies and compile a bunch of
-files.  This is a new feature so please open an issue if you have trouble.
-
-
+# Manual Installation
 If you're a developer, you can also install from source:
 
     git clone git@github.com:slinderman/pypolyagamma.git
