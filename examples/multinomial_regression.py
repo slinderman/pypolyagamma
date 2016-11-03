@@ -6,7 +6,6 @@ from matplotlib.colors import ColorConverter
 colors = ['r', 'b', 'y', 'g']
 colors = [ColorConverter().to_rgb(c) for c in colors]
 
-# from pgmult.utils import compute_psi_cmoments
 from pypolyagamma import MultinomialRegression
 from pypolyagamma.utils import compute_psi_cmoments, gradient_cmap
 
@@ -16,7 +15,9 @@ print("This example illustrates how the Multinomial regression "
       "depends on the permutation of the labels. One way to try to "
       "circumvent this limitation is by heuristically learning a "
       "permutation with, for example, a decision list. We will "
-      "release code for this shortly.")
+      "release code for this shortly. Note, however, that this "
+      "does not really matter if the labels are also inferred, since "
+      "we can jointly learn the labeling and a regression.")
 
 
 def _plot_mult_probs(reg,
@@ -38,9 +39,9 @@ def _plot_mult_probs(reg,
         start = np.array([1.0, 1.0, 1.0, 0.0])
         end = np.array(colors[k] + (0.5,))
         cmap = gradient_cmap([start, end])
-        im = ax.imshow(test_prs[:,k].reshape(*XX.shape),
-                       extent=xlim + tuple(reversed(ylim)),
-                       vmin=0, vmax=1, cmap=cmap)
+        ax.imshow(test_prs[:,k].reshape(*XX.shape),
+                  extent=xlim + tuple(reversed(ylim)),
+                  vmin=0, vmax=1, cmap=cmap)
 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)

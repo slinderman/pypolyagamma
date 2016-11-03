@@ -119,6 +119,10 @@ class _PGLogisticRegressionBase(object):
         if omegas is None:
             omegas = self._resample_auxiliary_variables(datas)
 
+        # Make copies of parameters (for sample collection in calling methods)
+        self.A = self.A.copy()
+        self.b = self.b.copy()
+
         D = self.D_in
         for n in range(self.D_out):
             # Resample C_{n,:} given z, omega[:,n], and kappa[:,n]
