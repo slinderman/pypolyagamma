@@ -3,7 +3,7 @@ import numpy as np
 import numpy.random as npr
 from scipy.special import gammaln
 
-from pypolyagamma.utils import logistic, sample_gaussian
+from pypolyagamma.utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
 from pypolyagamma import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
 
 class _PGLogisticRegressionBase(object):
@@ -92,13 +92,29 @@ class _PGLogisticRegressionBase(object):
 
         return np.sum(ll, axis=1)
 
+    @abc.abstractmethod
+    def mean(self, X):
+        """
+        Return the expected value of y given X.
+        This is distribution specific
+        """
+        raise NotImplementedError
+
     def rvs(self, x=None, size=[], return_xy=False):
         raise NotImplementedError
 
     def kappa_func(self, data):
         return self.a_func(data) - self.b_func(data) / 2.0
 
-    def resample(self, datas, masks, omegas=None):
+    def resample(self, datas, masks=None, omegas=None):
+        if not isinstance(datas, list):
+            assert isinstance(datas, tuple) and len(datas) == 2, \
+                "datas must be an (x,y) tuple or a list of such tuples"
+            datas = [datas]
+
+        if masks is None:
+            masks = [np.ones(y.shape, dtype=bool) for x,y in datas]
+
         # Resample auxiliary variables if they are not given
         if omegas is None:
             omegas = self._resample_auxiliary_variables(datas)
@@ -177,6 +193,10 @@ class BernoulliRegression(_PGLogisticRegressionBase):
 
         return (x,y) if return_xy else y
 
+    def mean(self, X):
+        psi = X.dot(self.A.T) + self.b.T
+        return logistic(psi)
+
 
 class BinomialRegression(_PGLogisticRegressionBase):
     def __init__(self, N, D_out, D_in, **kwargs):
@@ -204,6 +224,10 @@ class BinomialRegression(_PGLogisticRegressionBase):
         p = logistic(psi)
         y = npr.binomial(self.N, p)
         return (x, y) if return_xy else y
+
+    def mean(self, X):
+        psi = X.dot(self.A.T) + self.b.T
+        return self.N * logistic(psi)
 
 
 class NegativeBinomialRegression(_PGLogisticRegressionBase):
@@ -233,6 +257,11 @@ class NegativeBinomialRegression(_PGLogisticRegressionBase):
         y = npr.negative_binomial(self.r, 1-p)
         return (x, y) if return_xy else y
 
+    def mean(self, X):
+        psi = X.dot(self.A.T) + self.b.T
+        p = logistic(psi)
+        return self.r * p / (1-p)
+
 
 class MultinomialRegression(_PGLogisticRegressionBase):
     def __init__(self, N, D_out, D_in, **kwargs):
@@ -250,7 +279,6 @@ class MultinomialRegression(_PGLogisticRegressionBase):
 
         # Set the mean of the offset to be standard
         # Dirichlet(alpha=1) when A=0.
-        from pgmult.utils import compute_psi_cmoments
         mu_b, sigmasq_b = compute_psi_cmoments(np.ones(self.K))
         default_args = dict(mu_b=mu_b, sigmasq_b=sigmasq_b)
         default_args.update(kwargs)
@@ -306,3 +334,7 @@ class MultinomialRegression(_PGLogisticRegressionBase):
             raise NotImplementedError
 
         return (x, y) if return_xy else y
+
+    def mean(self, X):
+        psi = X.dot(self.A.T) + self.b.T
+        return psi_to_pi(psi)

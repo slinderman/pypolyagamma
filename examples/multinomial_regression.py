@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.random as npr
-npr.seed(1)
+# npr.seed(1)
 import matplotlib.pyplot as plt
 
 import seaborn as sns
@@ -108,7 +108,6 @@ def test_multinomial_regression_2d(N=1000, N_iter=1000):
         ax2.plot(X[y_perm == k, 0], X[y_perm == k, 1], 'o', color=colors[k])
     ax2.set_title("Inferred Probabilities for Permuted Data")
     plt.show()
-
 
 
 if __name__ == "__main__":

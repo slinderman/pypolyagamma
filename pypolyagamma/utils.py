@@ -70,7 +70,7 @@ def sample_gaussian(mu=None,Sigma=None,J=None,h=None):
             + dpotrs(L,h,lower=True)[0]
 
 
-### Multinomial utils
+### Multinomial utils from pgmult
 
 def get_density(alpha_k, alpha_rest):
     def density(psi):
@@ -91,4 +91,57 @@ def compute_psi_cmoments(alphas):
 
     return mu, sigma
 
+def psi_to_pi(psi, axis=None):
+    """
+    Convert psi to a probability vector pi
+    :param psi:     Length K-1 vector
+    :return:        Length K normalized probability vector
+    """
+    if axis is None:
+        if psi.ndim == 1:
+            K = psi.size + 1
+            pi = np.zeros(K)
+
+            # Set pi[1..K-1]
+            stick = 1.0
+            for k in range(K-1):
+                pi[k] = logistic(psi[k]) * stick
+                stick -= pi[k]
+
+            # Set the last output
+            pi[-1] = stick
+            # DEBUG
+            assert np.allclose(pi.sum(), 1.0)
+
+        elif psi.ndim == 2:
+            M, Km1 = psi.shape
+            K = Km1 + 1
+            pi = np.zeros((M,K))
+
+            # Set pi[1..K-1]
+            stick = np.ones(M)
+            for k in range(K-1):
+                pi[:,k] = logistic(psi[:,k]) * stick
+                stick -= pi[:,k]
+
+            # Set the last output
+            pi[:,-1] = stick
+
+            # DEBUG
+            assert np.allclose(pi.sum(axis=1), 1.0)
+
+        else:
+            raise ValueError("psi must be 1 or 2D")
+    else:
+        K = psi.shape[axis] + 1
+        pi = np.zeros([psi.shape[dim] if dim != axis else K for dim in range(psi.ndim)])
+        stick = np.ones(psi.shape[:axis] + psi.shape[axis+1:])
+        for k in range(K-1):
+            inds = [slice(None) if dim != axis else k for dim in range(psi.ndim)]
+            pi[inds] = logistic(psi[inds]) * stick
+            stick -= pi[inds]
+        pi[[slice(None) if dim != axis else -1 for dim in range(psi.ndim)]] = stick
+        assert np.allclose(pi.sum(axis=axis), 1.)
+
+    return pi
 
