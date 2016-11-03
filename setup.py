@@ -59,61 +59,74 @@ if not os.path.exists(os.path.join(gslpath, "gsl", "gsl_rng.h")):
     # Run make to symlink the headers
     subprocess.call("make", cwd=os.path.join(gslpath, "gsl"), shell=True)
 
+
+# Manually define the list of sources, including GSL files
+include_dirs = \
+    [
+        "pypolyagamma/cpp/include",
+        "deps/gsl",
+        "deps/gsl/gsl",
+        np.get_include()
+    ]
+
+headers = \
+    [
+        "pypolyagamma/cpp/PolyaGammaHybrid.h",
+        "pypolyagamma/cpp/include/RNG.hpp"
+    ]
+
+sources = \
+    [
+        "pypolyagamma/cpp/PolyaGamma.cpp",
+        "pypolyagamma/cpp/PolyaGammaSmallB.cpp",
+        "pypolyagamma/cpp/PolyaGammaAlt.cpp",
+        "pypolyagamma/cpp/PolyaGammaSP.cpp",
+        "pypolyagamma/cpp/InvertY.cpp",
+        "pypolyagamma/cpp/include/RNG.cpp",
+        "pypolyagamma/cpp/include/GRNG.cpp",
+        "deps/gsl/rng/mt.c",
+        "deps/gsl/cdf/gamma.c",
+        "deps/gsl/cdf/gauss.c",
+        "deps/gsl/randist/bernoulli.c",
+        "deps/gsl/randist/beta.c",
+        "deps/gsl/randist/chisq.c",
+        "deps/gsl/randist/exponential.c",
+        "deps/gsl/randist/flat.c",
+        "deps/gsl/randist/gamma.c",
+        "deps/gsl/randist/gauss.c",
+        "deps/gsl/randist/gausszig.c",
+        "deps/gsl/rng/rng.c",
+        "deps/gsl/err/error.c",
+        "deps/gsl/rng/file.c",
+        "deps/gsl/specfunc/gamma.c",
+        "deps/gsl/specfunc/gamma_inc.c",
+        "deps/gsl/specfunc/erfc.c",
+        "deps/gsl/specfunc/exp.c",
+        "deps/gsl/specfunc/expint.c",
+        "deps/gsl/specfunc/trig.c",
+        "deps/gsl/specfunc/log.c",
+        "deps/gsl/specfunc/psi.c",
+        "deps/gsl/specfunc/zeta.c",
+        "deps/gsl/specfunc/elementary.c",
+        "deps/gsl/complex/math.c",
+        "deps/gsl/sys/infnan.c",
+        "deps/gsl/sys/fdiv.c",
+        "deps/gsl/sys/coerce.c",
+        "deps/gsl/err/stream.c"
+    ]
+
 # Create the extensions. Manually enumerate the required
 extensions = []
 
 # PyPolyaGamma and GSL source files
 extensions.append(
     Extension('pypolyagamma.pypolyagamma',
-              depends=[
-                  "pypolyagamma/cpp/PolyaGammaHybrid.h",
-                  "pypolyagamma/cpp/include/RNG.hpp"],
+              depends=headers,
               extra_compile_args=["-w", "-DHAVE_INLINE"],
               extra_link_args=[],
-              include_dirs=[
-                  "pypolyagamma/cpp/include",
-                  "deps/gsl",
-                  "deps/gsl/gsl",
-                  np.get_include()],
+              include_dirs=include_dirs,
               language="c++",
-              sources=[
-                   "pypolyagamma/pypolyagamma" + ext,
-                   "pypolyagamma/cpp/PolyaGamma.cpp",
-                   "pypolyagamma/cpp/PolyaGammaSmallB.cpp",
-                   "pypolyagamma/cpp/PolyaGammaAlt.cpp",
-                   "pypolyagamma/cpp/PolyaGammaSP.cpp",
-                   "pypolyagamma/cpp/InvertY.cpp",
-                   "pypolyagamma/cpp/include/RNG.cpp",
-                   "pypolyagamma/cpp/include/GRNG.cpp",
-                   "deps/gsl/rng/mt.c",
-                   "deps/gsl/cdf/gamma.c",
-                   "deps/gsl/cdf/gauss.c",
-                   "deps/gsl/randist/bernoulli.c",
-                   "deps/gsl/randist/beta.c",
-                   "deps/gsl/randist/chisq.c",
-                   "deps/gsl/randist/exponential.c",
-                   "deps/gsl/randist/flat.c",
-                   "deps/gsl/randist/gamma.c",
-                   "deps/gsl/randist/gauss.c",
-                   "deps/gsl/randist/gausszig.c",
-                   "deps/gsl/rng/rng.c",
-                   "deps/gsl/err/error.c",
-                   "deps/gsl/rng/file.c",
-                   "deps/gsl/specfunc/gamma.c",
-                   "deps/gsl/specfunc/gamma_inc.c",
-                   "deps/gsl/specfunc/erfc.c",
-                   "deps/gsl/specfunc/exp.c",
-                   "deps/gsl/specfunc/expint.c",
-                   "deps/gsl/specfunc/trig.c",
-                   "deps/gsl/specfunc/log.c",
-                   "deps/gsl/specfunc/psi.c",
-                   "deps/gsl/specfunc/zeta.c",
-                   "deps/gsl/specfunc/elementary.c",
-                   "deps/gsl/complex/math.c",
-                   "deps/gsl/sys/infnan.c",
-                   "deps/gsl/sys/fdiv.c",
-                   "deps/gsl/sys/coerce.c",
-                   "deps/gsl/err/stream.c"],
+              sources=["pypolyagamma/pypolyagamma" + ext] + sources,
               )
 )
 
@@ -121,18 +134,12 @@ extensions.append(
 if USE_OPENMP:
     extensions.append(
         Extension('pypolyagamma.parallel',
-                  depends=[
-                      "pypolyagamma/cpp/PolyaGammaHybrid.h",
-                      "pypolyagamma/cpp/include/RNG.hpp"
-                  ],
+                  depends=headers,
                   extra_compile_args=["-w","-fopenmp", "-DHAVE_INLINE"],
                   extra_link_args=["-fopenmp"],
-                  include_dirs=[
-                      "pypolyagamma/cpp/include",
-                      np.get_include()],
+                  include_dirs=include_dirs,
                   language="c++",
-                  sources=[
-                      "pypolyagamma/parallel" + ext],
+                  sources=["pypolyagamma/parallel" + ext] + sources,
                   )
     )
 

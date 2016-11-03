@@ -4,23 +4,12 @@
 			  // Constructors //
 //////////////////////////////////////////////////////////////////////
 
-//BasicRNG::BasicRNG()
-//{
-//  r = gsl_rng_alloc(gsl_rng_mt19937);
-//  gsl_rng_set (r, time(NULL));
-//}
-
 BasicRNG::BasicRNG(unsigned long seed)
 {
   r = gsl_rng_alloc(gsl_rng_mt19937);
-//  gsl_rng_set (r, seed);
+  gsl_rng_set (r, seed);
 }
 
-//BasicRNG::BasicRNG(const BasicRNG& rng)
-//{
-//  r = gsl_rng_alloc(gsl_rng_mt19937);
-//  gsl_rng_memcpy(r, rng.r );
-//}
 
 //////////////////////////////////////////////////////////////////////
 			  // Assignment= //
@@ -29,8 +18,8 @@ BasicRNG::BasicRNG(unsigned long seed)
 BasicRNG& BasicRNG::operator=(const BasicRNG& rng)
 {
   // The random number generators must be of the same type.
-//  gsl_rng_memcpy(r, rng.r );
-//  return *this;
+  gsl_rng_memcpy(r, rng.r );
+  return *this;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -40,27 +29,16 @@ BasicRNG& BasicRNG::operator=(const BasicRNG& rng)
 
 bool BasicRNG::read(const string& filename)
 {
-
-//  FILE *file;
-//  file = fopen(filename.c_str(), "r");
-//  if (file==NULL) return false;
-//  // Must be initialized to same type.  gsl_rng_free(r);
-//  int success = gsl_rng_fread(file, r);
-//  fclose(file);
-//  return success==0;
+    return true;
 } // Read
 
 bool BasicRNG::write(const string& filename){
-//  FILE *file;
-//  file = fopen(filename.c_str(), "w");
-//  int success = gsl_rng_fwrite(file, r);
-//  fclose(file);
-//  return success==0;
+    return true;
 } // Write
 
 void BasicRNG::set(unsigned long seed)
 {
-//  gsl_rng_set(r, seed);
+    gsl_rng_set(r, seed);
 } // Set
 
 //////////////////////////////////////////////////////////////////////
