@@ -4,6 +4,10 @@ np.random.seed(1)
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+# import seaborn as sns
+# sns.set_style("white")
+# sns.set_context("talk")
+
 from pypolyagamma import BernoulliRegression
 
 ### Set some basic parameters
@@ -38,7 +42,7 @@ smpls = zip(*smpls)
 As, bs, lps = tuple(map(np.array, smpls))
 
 ### Plot the regression results
-fig = plt.figure()
+fig = plt.figure(figsize=(10,6))
 lim = (-3, 3)
 npts = 50
 x1, x2 = np.meshgrid(np.linspace(*lim, npts), np.linspace(*lim, npts))
@@ -49,12 +53,14 @@ plt.imshow(mu.reshape((npts, npts)),
            cmap="Greys", vmin=-0, vmax=1,
            alpha=0.8,
            extent=lim + tuple(reversed(lim)))
-plt.plot(X[yv==0,0], X[yv==0,1], 'b+', label="$y=0$")
-plt.plot(X[yv==1,0], X[yv==1,1], 'rx', label="$y=1$")
+plt.plot(X[yv==0,0], X[yv==0,1], 'o', markersize=6, label="$y=0$")
+plt.plot(X[yv==1,0], X[yv==1,1], 's', markersize=6, label="$y=1$")
 plt.xlim(lim)
 plt.ylim(lim)
-plt.legend(loc="upper left")
-plt.title("True Probability")
+plt.legend(loc="upper center", ncol=2, bbox_to_anchor=[0.6, 0, 1., -.15])
+plt.xlabel("$x_1$")
+plt.ylabel("$x_2$")
+plt.title("True Class Probabilities")
 
 divider = make_axes_locatable(ax1)
 cax = divider.new_horizontal(size="5%", pad=0.1)
@@ -67,16 +73,21 @@ plt.imshow(mu.reshape((npts, npts)),
            cmap="Greys", vmin=0, vmax=1,
            alpha=0.8,
            extent=lim + tuple(reversed(lim)))
-plt.plot(X[yv==0,0], X[yv==0,1], 'b+', label="$y=0$")
-plt.plot(X[yv==1,0], X[yv==1,1], 'rx', label="$y=1$")
+plt.plot(X[yv==0,0], X[yv==0,1], 'o', markersize=6, label="$y=0$")
+plt.plot(X[yv==1,0], X[yv==1,1], 's', markersize=6, label="$y=1$")
 plt.xlim(lim)
 plt.ylim(lim)
-plt.title("Inferred Probability")
+plt.xlabel("$x_1$")
+plt.ylabel("$x_2$")
+plt.title("Inferred Class Probabilities")
 
 divider = make_axes_locatable(ax2)
 cax = divider.new_horizontal(size="5%", pad=0.1)
 fig.add_axes(cax)
 plt.colorbar(cax=cax)
+
+plt.tight_layout()
+plt.savefig("aux/bernoulli_regression.png")
 
 ### Print the true and inferred parameters
 print("True A: {}".format(true_reg.A))

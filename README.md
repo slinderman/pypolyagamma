@@ -62,7 +62,12 @@ for _ in range(100):
    samples.append((reg.A, reg.b))
 ```
 Under the hood, this will instantiate Pólya-gamma auxiliary variables
-and perform conditionally-conjugate Gibbs sampling.
+and perform conditionally-conjugate Gibbs sampling. We can visualize
+the inferred parameters in terms of the implied probability for each
+point in the input space.
+![Bernoulli Regression](https://raw.githubusercontent.com/slinderman/pypolyagamma/simplegsl/aux/bernoulli_regression.png)
+
+
 
 Here's how you can manually perform inference in a simple binomial model
 with `N=10` counts and probability `p=logistic(x)`, with
