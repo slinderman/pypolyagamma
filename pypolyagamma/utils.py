@@ -145,3 +145,36 @@ def psi_to_pi(psi, axis=None):
 
     return pi
 
+
+### Plotting stuff from hips-lib
+
+def gradient_cmap(colors, nsteps=256, bounds=None, alpha=1.0):
+    from matplotlib.colors import LinearSegmentedColormap, ColorConverter
+    # Make a colormap that interpolates between a set of colors
+    ncolors = len(colors)
+    # assert colors.shape[1] == 3
+    if bounds is None:
+        bounds = np.linspace(0,1,ncolors)
+
+
+    reds = []
+    greens = []
+    blues = []
+    alphas = []
+    for b,c in zip(bounds, colors):
+        if isinstance(c, str):
+            c = ColorConverter().to_rgb(c)
+
+        reds.append((b, c[0], c[0]))
+        greens.append((b, c[1], c[1]))
+        blues.append((b, c[2], c[2]))
+        alphas.append((b, c[3], c[3]) if len(c) == 4 else (b, alpha, alpha))
+
+    cdict = {'red': tuple(reds),
+             'green': tuple(greens),
+             'blue': tuple(blues),
+             'alpha': tuple(alphas)}
+
+    cmap = LinearSegmentedColormap('grad_colormap', cdict, nsteps)
+    return cmap
+
