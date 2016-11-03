@@ -144,8 +144,8 @@ revert to the serial sampler.
 
 - [Windle, Jesse, Nicholas G. Polson, and James G. Scott. "Sampling Polya-Gamma random variates: alternate and approximate techniques." _arXiv preprint arXiv:1405.0506_ (2014).](http://arxiv.org/pdf/1405.0506)
 
-- [Linderman, Scott, Matthew Johnson, and Ryan P. Adams. "Dependent Multinomial Models Made Easy: Stick-Breaking with the Polya-gamma Augmentation." _Advances in Neural Information Processing Systems_. 2015.](http://papers.nips.cc/paper/5660-dependent-multinomial-models-made-easy-stick-breaking-with-the-polya-gamma-augmentation.pdf) (also see our github repo, [pgmult](https://github.com/HIPS/pgmult))
+- [Linderman, Scott, Matthew Johnson, and Ryan P. Adams. "Dependent Multinomial Models Made Easy: Stick-Breaking with the Polya-gamma Augmentation." _Advances in Neural Information Processing Systems_. 2015.](http://papers.nips.cc/paper/5660-dependent-multinomial-models-made-easy-stick-breaking-with-the-polya-gamma-augmentation.pdf)  Check out our github repo, [pgmult](https://github.com/HIPS/pgmult)
 
-- [Linderman, Scott W., Ryan P. Adams, and Jonathan W. Pillow. "Bayesian latent structure discovery from multi-neuron recordings." _Advances in Neural Information Processing Systems (NIPS)_ (2016). (also see our github repo, [pyglm](https://github.com/slinderman/pyglm))](https://arxiv.org/pdf/1610.08465)
+- [Linderman, Scott W., Ryan P. Adams, and Jonathan W. Pillow. "Bayesian latent structure discovery from multi-neuron recordings." _Advances in Neural Information Processing Systems (NIPS)_ (2016).](https://arxiv.org/pdf/1610.08465) Check out our github repo, [pyglm](https://github.com/slinderman/pyglm))
 
 - [Linderman, Scott W., et al. "Recurrent switching linear dynamical systems." arXiv preprint arXiv:1610.08466 (2016).](https://arxiv.org/pdf/1610.08466)
