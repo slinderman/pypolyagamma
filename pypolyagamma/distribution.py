@@ -46,3 +46,6 @@ def pgpdf(omega, b, psi, trunc=200):
 
 def pgmean(b, psi):
     return b / (2.*psi) * np.tanh(psi/2.)
+
+def logistic(x):
+    return 1./(1+np.exp(-x))

@@ -22,16 +22,16 @@ cdef class PyPolyaGamma:
     cpdef set_trunc(self, int trunc):
         self.thisptr.set_trunc(trunc)
 
-    cpdef double pgdraw(self, double n, double z):
-        return self.thisptr.draw(n, z)
+    cpdef double pgdraw(self, double b, double c):
+        return self.thisptr.draw(b, c)
 
-    cpdef pgdrawv(self, double[::1] ns, double[::1] zs, double[::1] pgs):
+    cpdef pgdrawv(self, double[::1] bs, double[::1] cs, double[::1] pgs):
         """
         Draw a vector of Polya-gamma random variables
         """
 
         cdef int s = 0
-        cdef int S = ns.size
+        cdef int S = bs.size
 
         for s in range(S):
-            pgs[s] = self.thisptr.draw(ns[s], zs[s])
+            pgs[s] = self.thisptr.draw(bs[s], cs[s])
