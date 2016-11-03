@@ -142,11 +142,10 @@ if USE_CYTHON:
 
 setup(
     name='pypolyagamma',
-    version='0.3.1',
-    description='''Cython wrappers for Polya gamma random number generation based on Jesse
-                   Windle\'s BayesLogit package: https://github.com/jwindle/BayesLogit.''',
+    version='1.0.1',
+    description='''Cython wrappers for Polya gamma random number generation based on Jesse Windle\'s BayesLogit package: https://github.com/jwindle/BayesLogit.''',
     author='Scott Linderman',
-    author_email='slinderman@seas.harvard.edu',
+    author_email='scott.linderman@columbia.edu',
     url='http://www.github.com/slinderman/pypolyagamma',
     license="MIT",
     packages=['pypolyagamma'],

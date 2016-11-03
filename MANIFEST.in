@@ -6,3 +6,5 @@ recursive-include pypolyagamma *.hpp
 global-exclude *.pyc
 global-exclude *.pyo
 global-exclude *.so
+
+recursive-exclude deps/gsl *

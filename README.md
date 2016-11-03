@@ -85,7 +85,12 @@ and compare the samples to the target density.
 
 # Installation
 
-This is the simplest way to install:
+You can now install with `pip install pypolyagamma`. Be patient, the installation
+may take some time as it has to download some dependencies and compile a bunch of
+files.  This is a new feature so please open an issue if you have trouble.
+
+
+If you're a developer, you can also install from source:
 
     git clone git@github.com:slinderman/pypolyagamma.git
     cd pypolyagamma
