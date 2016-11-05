@@ -48,14 +48,15 @@ models. For example, you can fit a Bernoulli regression as follows:
 
 ```python
 from pypolyagamma import BernoulliRegression
-D_obs = 1     # Observation dimension
-D_latent = 2  # Latent dimension
-reg = BernoulliRegression(D_obs, D_latent)
+D_out = 1     # Output dimension
+D_in = 2      # Input dimension
+reg = BernoulliRegression(D_out, D_in)
 
-# Given X, an NxD_obs array of real-valued inputs,
-# and Y, and Nx1 array of binary observations. Fit
-# the linear model y_n ~ Bern(sigma(Ax_n + b)),
-# where sigma is the logistic function.
+# Given X, an NxD_in array of real-valued inputs,
+# and Y, and NxD_out array of binary observations. Fit
+# the linear model y_n ~ Bern(sigma(A x_n + b)),
+# where sigma is the logistic function.  A is D_out x D_in,
+# b is D_out x 1, and the entries in y_n are cond. indep.
 samples = []
 for _ in range(100):
    reg.resample((X,Y))
