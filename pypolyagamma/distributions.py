@@ -106,18 +106,18 @@ class _PGLogisticRegressionBase(object):
     def kappa_func(self, data):
         return self.a_func(data) - self.b_func(data) / 2.0
 
-    def resample(self, datas, masks=None, omegas=None):
-        if not isinstance(datas, list):
-            assert isinstance(datas, tuple) and len(datas) == 2, \
+    def resample(self, data, mask=None, omega=None):
+        if not isinstance(data, list):
+            assert isinstance(data, tuple) and len(data) == 2, \
                 "datas must be an (x,y) tuple or a list of such tuples"
-            datas = [datas]
+            data = [data]
 
-        if masks is None:
-            masks = [np.ones(y.shape, dtype=bool) for x,y in datas]
+        if mask is None:
+            mask = [np.ones(y.shape, dtype=bool) for x, y in data]
 
         # Resample auxiliary variables if they are not given
-        if omegas is None:
-            omegas = self._resample_auxiliary_variables(datas)
+        if omega is None:
+            omega = self._resample_auxiliary_variables(data)
 
         # Make copies of parameters (for sample collection in calling methods)
         self.A = self.A.copy()
@@ -136,14 +136,14 @@ class _PGLogisticRegressionBase(object):
             lkhd_h = np.zeros(D + 1)
             lkhd_J = np.zeros((D + 1, D + 1))
 
-            for data, mask, omega in zip(datas, masks, omegas):
-                if isinstance(data, tuple):
-                    x,y = data
+            for d, m, o in zip(data, mask, omega):
+                if isinstance(d, tuple):
+                    x, y = d
                 else:
-                    x,y = data[:,:D], data[:,D:]
+                    x,y = d[:,:D], d[:,D:]
                 augx = np.hstack((x, np.ones((x.shape[0], 1))))
-                J = omega * mask
-                h = self.kappa_func(y) * mask
+                J = o * m
+                h = self.kappa_func(y) * m
 
                 lkhd_J += (augx * J[:,n][:,None]).T.dot(augx)
                 lkhd_h += h[:,n].T.dot(augx)

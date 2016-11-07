@@ -88,7 +88,7 @@ def test_multinomial_regression_2d(N=1000, N_iter=1000):
     for itr in range(N_iter):
         if itr % 100 == 0:
             print("Iter: {}".format(itr))
-        test_reg.resample(datas=[(X, y_oh_perm[:,:-1])], masks=[mask])
+        test_reg.resample(data=[(X, y_oh_perm[:, :-1])], mask=[mask])
 
     np.set_printoptions(precision=3)
     print("True A:\n{}".format(true_reg.A))
