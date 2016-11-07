@@ -3,8 +3,8 @@ import numpy as np
 import numpy.random as npr
 from scipy.special import gammaln
 
-from pypolyagamma.utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
-from pypolyagamma import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
+from .utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
+from . import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
 
 class _PGLogisticRegressionBase(object):
     """
