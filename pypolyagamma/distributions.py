@@ -2,6 +2,7 @@ import abc
 import numpy as np
 import numpy.random as npr
 from scipy.special import gammaln
+from scipy.sparse import csr_matrix
 
 from .utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
 from . import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
@@ -77,7 +78,7 @@ class _PGLogisticRegressionBase(object):
     def c_func(self, data):
         raise NotImplementedError
 
-    def log_likelihood(self, xy, mask=None):
+    def _elementwise_log_likelihood(self, xy, mask=None):
         if isinstance(xy, tuple):
             x,y = xy
         elif isinstance(xy, np.ndarray):
@@ -89,7 +90,10 @@ class _PGLogisticRegressionBase(object):
         ll = np.log(self.c_func(y)) + self.a_func(y) * psi - self.b_func(y) * np.log(1+np.exp(psi))
         if mask is not None:
             ll *= mask
+        return ll
 
+    def log_likelihood(self, xy, mask=None):
+        ll = self._elementwise_log_likelihood(xy, mask=mask)
         return np.sum(ll, axis=1)
 
     @abc.abstractmethod
@@ -124,36 +128,40 @@ class _PGLogisticRegressionBase(object):
         self.b = self.b.copy()
 
         D = self.D_in
+        xs = [d[0] for d in data]
         for n in range(self.D_out):
-            # Resample C_{n,:} given z, omega[:,n], and kappa[:,n]
-            prior_Sigma = np.zeros((D + 1, D + 1))
-            prior_Sigma[:D, :D] = self.sigmasq_A[n]
-            prior_Sigma[D, D] = self.sigmasq_b[n]
-            prior_J = np.linalg.inv(prior_Sigma)
+            yns = [d[1][:,n] for d in data]
+            maskns = [m[:,n] for m in mask]
+            omegans = [o[:,n] for o in omega]
+            self._resample_row_of_emission_matrix(n, xs, yns, maskns, omegans)
 
-            prior_h = prior_J.dot(np.concatenate((self.mu_A[n], [self.mu_b[n]])))
+    def _resample_row_of_emission_matrix(self, n, xs, yns, maskns, omegans):
+        # Resample C_{n,:} given z, omega[:,n], and kappa[:,n]
+        D = self.D_in
+        prior_Sigma = np.zeros((D + 1, D + 1))
+        prior_Sigma[:D, :D] = self.sigmasq_A[n]
+        prior_Sigma[D, D] = self.sigmasq_b[n]
+        prior_J = np.linalg.inv(prior_Sigma)
 
-            lkhd_h = np.zeros(D + 1)
-            lkhd_J = np.zeros((D + 1, D + 1))
+        prior_h = prior_J.dot(np.concatenate((self.mu_A[n], [self.mu_b[n]])))
 
-            for d, m, o in zip(data, mask, omega):
-                if isinstance(d, tuple):
-                    x, y = d
-                else:
-                    x,y = d[:,:D], d[:,D:]
-                augx = np.hstack((x, np.ones((x.shape[0], 1))))
-                J = o * m
-                h = self.kappa_func(y) * m
+        lkhd_h = np.zeros(D + 1)
+        lkhd_J = np.zeros((D + 1, D + 1))
 
-                lkhd_J += (augx * J[:,n][:,None]).T.dot(augx)
-                lkhd_h += h[:,n].T.dot(augx)
+        for x, yn, mn, on in zip(xs, yns, maskns, omegans):
+            augx = np.hstack((x, np.ones((x.shape[0], 1))))
+            Jn = on * mn
+            hn = self.kappa_func(yn) * mn
 
-            post_h = prior_h + lkhd_h
-            post_J = prior_J + lkhd_J
+            lkhd_J += (augx * Jn[:, None]).T.dot(augx)
+            lkhd_h += hn.T.dot(augx)
 
-            joint_sample = sample_gaussian(J=post_J, h=post_h)
-            self.A[n,:]  = joint_sample[:D]
-            self.b[n]    = joint_sample[D]
+        post_h = prior_h + lkhd_h
+        post_J = prior_J + lkhd_J
+
+        joint_sample = sample_gaussian(J=post_J, h=post_h)
+        self.A[n, :] = joint_sample[:D]
+        self.b[n] = joint_sample[D]
 
     def _resample_auxiliary_variables(self, datas):
         A, b = self.A, self.b
@@ -164,10 +172,11 @@ class _PGLogisticRegressionBase(object):
             else:
                 x, y = data[:, :self.D_in], data[:, self.D_in:]
 
+            bb = self.b_func(y)
             psi = x.dot(A.T) + b.T
             omega = np.zeros(y.size)
             pgdrawvpar(self.ppgs,
-                       self.b_func(y).ravel(),
+                       bb.ravel(),
                        psi.ravel(),
                        omega)
             omegas.append(omega.reshape(y.shape))
@@ -178,7 +187,11 @@ class BernoulliRegression(_PGLogisticRegressionBase):
         return data
 
     def b_func(self, data):
-        return np.ones_like(data, dtype=np.float)
+        if isinstance(data, csr_matrix):
+            vals = np.ones_like(data.data, dtype=np.float)
+            return csr_matrix((vals, data.indices, data.indptr), shape=data.shape)
+        else:
+            return np.ones_like(data, dtype=np.float)
 
     def c_func(self, data):
         return 1.0
@@ -211,7 +224,11 @@ class BinomialRegression(_PGLogisticRegressionBase):
         return data
 
     def b_func(self, data):
-        return self.N * np.ones_like(data, dtype=np.float)
+        if isinstance(data, csr_matrix):
+            vals = self.N * np.ones_like(data.data, dtype=np.float)
+            return csr_matrix((vals, data.indices, data.indptr), shape=data.shape)
+        else:
+            return self.N * np.ones_like(data, dtype=np.float)
 
     def c_func(self, data):
         return gammaln(self.N+1) - gammaln(data+1) - gammaln(self.N-data+1)
