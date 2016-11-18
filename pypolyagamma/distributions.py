@@ -427,8 +427,8 @@ class _MixtureOfRegressionsBase(object):
     """
     _regression_class = _PGLogisticRegressionBase
 
-    def __init__(self, M, D_out, D_in, *args,
-                 alpha=10.0, **kwargs):
+    def __init__(self, M, D_out, D_in, alpha=10.0,
+                 regression_kwargs={}):
         """
         Initialize the model
         :param M: Number of mixture components
@@ -438,7 +438,7 @@ class _MixtureOfRegressionsBase(object):
         # Instantiate M regression objects
         self.M, self.D_out, self.D_in, = M, D_out, D_in
         self.regressions = \
-            [self._regression_class(*args, D_out=D_out, D_in=D_in, **kwargs)
+            [self._regression_class(D_out=D_out, D_in=D_in, **regression_kwargs)
              for _ in range(M)]
 
         # Weight the regression objects
@@ -499,8 +499,9 @@ class MixtureOfMultinomialRegressions(_MixtureOfRegressionsBase):
         :param Ps: a set of M permutation matrices. If not given,
                    these will be randomly sampled.
         """
+        kwargs["N"] = N
         super(MixtureOfMultinomialRegressions, self).\
-            __init__(M, D_out, D_in, N, **kwargs)
+            __init__(M, D_out, D_in, regression_kwargs=kwargs)
 
         # Override D_out
         self.N = N
