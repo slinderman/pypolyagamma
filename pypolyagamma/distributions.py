@@ -76,7 +76,7 @@ class _PGLogisticRegressionBase(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def c_func(self, data):
+    def log_c_func(self, data):
         raise NotImplementedError
 
     def _elementwise_log_likelihood(self, xy, mask=None):
@@ -88,7 +88,7 @@ class _PGLogisticRegressionBase(object):
             raise NotImplementedError
 
         psi = x.dot(self.A.T) + self.b.T
-        ll = np.log(self.c_func(y)) + self.a_func(y) * psi - self.b_func(y) * np.log(1+np.exp(psi))
+        ll = self.log_c_func(y) + self.a_func(y) * psi - self.b_func(y) * np.log(1+np.exp(psi))
         if mask is not None:
             ll *= mask
         return ll
@@ -194,8 +194,8 @@ class BernoulliRegression(_PGLogisticRegressionBase):
         else:
             return np.ones_like(data, dtype=np.float)
 
-    def c_func(self, data):
-        return 1.0
+    def log_c_func(self, data):
+        return 0
 
     def rvs(self, x=None, size=[], return_xy=False):
         if x is None:
@@ -216,6 +216,65 @@ class BernoulliRegression(_PGLogisticRegressionBase):
         return logistic(psi)
 
 
+    def max_likelihood(self, data, weights=None, stats=None, lmbda=0.1):
+        """
+        As an alternative to MCMC with Polya-gamma augmentation,
+        we also implement maximum likelihood learning via gradient
+        descent with autograd. This follows the pybasicbayes
+        convention.
+
+        :param data: list of tuples, (x,y), for each dataset.
+        :param weights: Not used in this implementation.
+        :param stats: Not used in this implementation.
+        """
+        import autograd.numpy as anp
+        from autograd import value_and_grad, hessian_vector_product
+        from scipy.optimize import minimize
+
+        assert weights is None
+        assert stats is None
+        if not isinstance(data, list):
+            assert isinstance(data, tuple) and len(data) == 2
+            data = [data]
+
+        # Define a helper function for the log of the logistic fn
+        def loglogistic(psi):
+            return psi - anp.log(1+anp.exp(psi))
+
+        # optimize each row of A and b
+        for n in range(self.D_out):
+
+            # Define an objective function for the n-th row of hstack((A, b))
+            # This is the negative log likelihood of the n-th column of data.
+            def nll(abn):
+                an, bn = abn[:-1], abn[-1]
+                T = 0
+                ll = 0
+                for (x, y) in data:
+                    T += x.shape[0]
+                    yn = y[:, n]
+                    psi = anp.dot(x, an) + bn
+                    ll += anp.sum(yn * loglogistic(psi))
+                    ll += anp.sum((1 - yn) * loglogistic(-1. * psi))
+
+                # Include a penalty on the weights
+                ll -= lmbda * T * anp.sum(an**2)
+                ll -= lmbda * T * bn**2
+
+                return -1 * ll / T
+
+            abn0 = np.concatenate((self.A[n], self.b[n]))
+            res = minimize(value_and_grad(nll), abn0,
+                           tol=1e-3,
+                           method="Newton-CG",
+                           jac=True,
+                           hessp=hessian_vector_product(nll))
+
+            assert res.success
+            self.A[n] = res.x[:-1]
+            self.b[n] = res.x[-1]
+
+
 class BinomialRegression(_PGLogisticRegressionBase):
     def __init__(self, N, D_out, D_in, **kwargs):
         self.N = N
@@ -231,7 +290,7 @@ class BinomialRegression(_PGLogisticRegressionBase):
         else:
             return self.N * np.ones_like(data, dtype=np.float)
 
-    def c_func(self, data):
+    def log_c_func(self, data):
         return gammaln(self.N+1) - gammaln(data+1) - gammaln(self.N-data+1)
 
     def rvs(self, x=None, size=[], return_xy=False):
@@ -263,8 +322,8 @@ class NegativeBinomialRegression(_PGLogisticRegressionBase):
     def b_func(self, data):
         return self.r + data
 
-    def c_func(self, data):
-        raise NotImplementedError
+    def log_c_func(self, data):
+        return gammaln(data+self.r) - gammaln(self.r) - gammaln(data+1)
 
     def rvs(self, x=None, size=[], return_xy=False):
         if x is None:
@@ -321,15 +380,15 @@ class MultinomialRegression(_PGLogisticRegressionBase):
             (self.N * np.ones((T,1)),
              self.N * np.ones((T, 1)) - np.cumsum(data, axis=1)[:, :-1]))
 
-    def c_func(self, data):
+    def log_c_func(self, data):
         assert data.shape[1] == self.K - 1
         if self.N == 1:
             return 1.0
         else:
-            return np.exp(gammaln(self.N + 1) -
-                          np.sum(gammaln(data + 1), axis=1) -
-                          gammaln(self.N-np.sum(data, axis=1) + 1)
-                          )
+            return gammaln(self.N + 1) - \
+                   np.sum(gammaln(data + 1), axis=1) - \
+                   gammaln(self.N-np.sum(data, axis=1) + 1)
+
 
     def pi(self, X):
         from pypolyagamma.utils import psi_to_pi

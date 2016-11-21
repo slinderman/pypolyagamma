@@ -41,6 +41,12 @@ for itr in range(100):
 smpls = zip(*smpls)
 As, bs, lps = tuple(map(np.array, smpls))
 
+### Make a test regression and fit it with maximum likelihood
+print("Fitting with maximum likelihood")
+ml_reg = BernoulliRegression(D_obs, D_latent)
+ml_reg.max_likelihood(data=(X,y))
+print("Done")
+
 ### Plot the regression results
 fig = plt.figure(figsize=(10,6))
 lim = (-3, 3)
@@ -55,9 +61,21 @@ plt.imshow(mu.reshape((npts, npts)),
            extent=lim + tuple(reversed(lim)))
 plt.plot(X[yv==0,0], X[yv==0,1], 'o', markersize=6, label="$y=0$")
 plt.plot(X[yv==1,0], X[yv==1,1], 's', markersize=6, label="$y=1$")
+
+# Draw the true hyperplane
+xx = np.linspace(*lim, 100)
+yy_true = -(true_reg.A[0, 0] * xx + true_reg.b[0]) / true_reg.A[0, 1]
+plt.plot(xx, yy_true, '-k', lw=2, label="True")
+
+# Draw the ML hyperplane
+yy_ml = -(ml_reg.A[0,0] * xx  + ml_reg.b[0]) / ml_reg.A[0,1]
+plt.plot(xx, yy_ml,'-r', lw=2, label="Max Lkhd")
+
 plt.xlim(lim)
 plt.ylim(lim)
-plt.legend(loc="upper center", ncol=2, bbox_to_anchor=[0.6, 0, 1., -.15])
+
+# Legend
+plt.legend(loc="upper center", ncol=4, bbox_to_anchor=[0.6, 0, 1., -.15])
 plt.xlabel("$x_1$")
 plt.ylabel("$x_2$")
 plt.title("True Class Probabilities")
@@ -75,6 +93,11 @@ plt.imshow(mu.reshape((npts, npts)),
            extent=lim + tuple(reversed(lim)))
 plt.plot(X[yv==0,0], X[yv==0,1], 'o', markersize=6, label="$y=0$")
 plt.plot(X[yv==1,0], X[yv==1,1], 's', markersize=6, label="$y=1$")
+
+# Draw the ML hyperplane
+plt.plot(xx, yy_true, '-k', lw=2, label="True")
+plt.plot(xx, yy_ml,'-r', lw=2, label="Max Lkhd")
+
 plt.xlim(lim)
 plt.ylim(lim)
 plt.xlabel("$x_1$")
