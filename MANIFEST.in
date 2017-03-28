@@ -1,3 +1,5 @@
+include deps/README.md
+
 recursive-include pypolyagamma *.pyx
 recursive-include pypolyagamma *.cpp
 recursive-include pypolyagamma *.h
