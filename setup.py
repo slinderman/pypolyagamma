@@ -47,7 +47,7 @@ if not os.path.exists(gslpath):
     print("Extracting to {}".format(gslpath))
     with tarfile.open(gsltarpath, 'r') as tar:
         tar.extractall('deps')
-    thedir = glob(os.path.join('deps', 'gsl-*'))[0]
+    thedir = glob(os.path.join('deps', 'gsl-*/'))[0]
     shutil.copytree(os.path.join(thedir), gslpath)
     print('...Done!')
 
