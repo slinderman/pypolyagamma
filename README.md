@@ -126,9 +126,9 @@ If you're a developer, you can also install from source:
 
 To check if it worked, run:
 
-    python test/basic.py
+    nosetests
 
-If it prints `Tests passed!` then you're good to go!
+If all the tests pass then you're good to go!
 
 Under the hood, the installer will download
 [GSL](https://www.gnu.org/software/gsl/),
