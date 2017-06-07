@@ -109,15 +109,13 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
         plt.show()
     return True
 
-def run_tests(verbose=False):
+
+if __name__ == "__main__":
+    verbose = len(sys.argv) > 1 and (sys.argv[1] == '-v' or sys.argv[1] == "--verbose")
     assert test_no_seed(verbose)
     assert test_single_draw(verbose)
     assert test_vector_draw(verbose)
     assert test_parallel(verbose)
     assert test_density()
-    print("Tests passed!")
-
-if __name__ == "__main__":
-    verbose = len(sys.argv) > 1 and (sys.argv[1] == '-v' or sys.argv[1] == "--verbose")
-    run_tests(verbose)
     # ks_test()
+    print("Tests passed!")
