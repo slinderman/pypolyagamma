@@ -173,6 +173,7 @@ setup(
     packages=['pypolyagamma'],
     ext_modules=extensions,
     install_requires=['numpy', 'scipy', 'matplotlib'],
+    setup_requires=['numpy'],
     classifiers=[
         'Intended Audience :: Science/Research',
         'Programming Language :: Python',
