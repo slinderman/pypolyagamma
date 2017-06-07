@@ -4,12 +4,25 @@ from setuptools import setup
 from setuptools.extension import Extension
 
 from glob import glob
-from future.moves.urllib.request import urlretrieve
 import tarfile
 import shutil
-
 import subprocess
 
+# Not the greatest way to handle Python 2/3 changes
+# but this avoids the need for the 'future' modules,
+# which was causing some headaches in installation.
+try:
+    # Python 2
+    from urllib import urlretrieve
+except:
+    try:
+        # Python 3
+        from urllib.request import urlretrieve
+    except:
+        raise Exception("Could not import urlretrieve.")
+
+
+# You need numpy... no way around that one!
 try:
     import numpy as np
 except ImportError:
@@ -151,7 +164,7 @@ if USE_CYTHON:
 
 setup(
     name='pypolyagamma',
-    version='1.1.1',
+    version='1.1.2',
     description='''Cython wrappers for Polya gamma random number generation based on Jesse Windle\'s BayesLogit package: https://github.com/jwindle/BayesLogit.''',
     author='Scott Linderman',
     author_email='scott.linderman@columbia.edu',
