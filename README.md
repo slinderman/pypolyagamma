@@ -1,4 +1,5 @@
 # PyPólyaGamma
+[![Test status](https://travis-ci.org/slinderman/pypolyagamma.svg?branch=master)](https://travis-ci.org/slinderman/pypolyagamma)
 
 This is a Cython port of Jesse Windle's code at
 https://github.com/jwindle/BayesLogit. It provides a
