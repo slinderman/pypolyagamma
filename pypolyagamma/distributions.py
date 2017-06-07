@@ -5,6 +5,8 @@ from scipy.special import gammaln
 from scipy.sparse import csr_matrix
 from scipy.misc import logsumexp
 
+# Name collision in pypolyagamma.pypolyagamma
+# Use relative paths instead (ugh).
 from .utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
 from . import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
 
