@@ -2,6 +2,9 @@ import os
 
 from setuptools import setup
 from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext as _build_ext
+import pkg_resources
+
 
 from glob import glob
 import tarfile
@@ -22,11 +25,16 @@ except:
         raise Exception("Could not import urlretrieve.")
 
 
-# You need numpy... no way around that one!
-try:
-    import numpy as np
-except ImportError:
-    print("Please install numpy.")
+# Hold off on locating the numpy include directory 
+# until we are actually building the extensions, by which 
+# point numpy should have been installed
+class build_ext(_build_ext):
+    def build_extensions(self):
+        numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
+        for ext in self.extensions:
+            if hasattr(ext, 'include_dirs') and not numpy_incl in ext.include_dirs:
+                ext.include_dirs.append(numpy_incl)
+        _build_ext.build_extensions(self)
 
 # Dealing with Cython
 # use cython if we can import it successfully
@@ -81,7 +89,6 @@ include_dirs = \
         "pypolyagamma/cpp/include",
         "deps/gsl",
         "deps/gsl/gsl",
-        np.get_include()
     ]
 
 headers = \
@@ -173,7 +180,6 @@ setup(
     packages=['pypolyagamma'],
     ext_modules=extensions,
     install_requires=['numpy', 'scipy', 'matplotlib'],
-    setup_requires=['numpy'],
     classifiers=[
         'Intended Audience :: Science/Research',
         'Programming Language :: Python',
@@ -181,4 +187,5 @@ setup(
         ],
     keywords=['monte-carlo', 'polya', 'gamma'],
     platforms="ALL",
+    cmd_class = {'build_ext': build_ext}
 )
