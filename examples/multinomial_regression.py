@@ -55,9 +55,9 @@ if __name__ == "__main__":
 
     ### Construct multinomial regression to divvy up the space #
     K, D_in = 4, 2
-    w1, b1 = np.array([+1.0, 0.0]), np.array([-2.0])  # x + b < 0 -> x < -b
-    w2, b2 = np.array([-1.0, 0.0]), np.array([-2.0])  # -x + b < 0 -> x > b
-    w3, b3 = np.array([0.0, +1.0]), np.array([0.0])  # y < 0
+    w1, b1 = np.array([+1.0, 0.0]), np.array([-2.0])  # x + b > 0 -> x > -b
+    w2, b2 = np.array([-1.0, 0.0]), np.array([-2.0])  # -x + b > 0 -> x < b
+    w3, b3 = np.array([0.0, +1.0]), np.array([0.0])  # y > 0
 
     reg_W = np.row_stack([w1, w2, w3][:K-1])
     reg_b = np.row_stack([b1, b2, b3][:K-1])
