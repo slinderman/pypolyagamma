@@ -6,18 +6,13 @@ from matplotlib.colors import ColorConverter
 colors = ['r', 'b', 'y', 'g']
 colors = [ColorConverter().to_rgb(c) for c in colors]
 
-from pypolyagamma import MultinomialRegression
-from pypolyagamma.utils import compute_psi_cmoments, gradient_cmap
+from pypolyagamma import TreeStructuredMultinomialRegression
+from pypolyagamma.utils import gradient_cmap
 
 print("This example illustrates how the Multinomial regression "
-      "with stick breaking iteratively partitions the input space "
-      "with hyperplanes. There is one major issue: the stick breaking "
-      "depends on the permutation of the labels. One way to try to "
-      "circumvent this limitation is by heuristically learning a "
-      "permutation with, for example, a decision list. We will "
-      "release code for this shortly. Note, however, that this "
-      "does not really matter if the labels are also inferred, since "
-      "we can jointly learn the labeling and a regression.")
+      "with tree structured stick breaking partitions the input space "
+      "with hyperplanes. For now, assume a binary tree structure."
+      "\n\n")
 
 
 def _plot_mult_probs(reg,
@@ -55,22 +50,20 @@ if __name__ == "__main__":
 
     ### Construct multinomial regression to divvy up the space #
     K, D_in = 4, 2
-    w1, b1 = np.array([+1.0, 0.0]), np.array([-2.0])  # x + b < 0 -> x < -b
-    w2, b2 = np.array([-1.0, 0.0]), np.array([-2.0])  # -x + b < 0 -> x > b
-    w3, b3 = np.array([0.0, +1.0]), np.array([0.0])  # y < 0
+    w1, b1 = np.array([+1.0, 0.0]), np.array([0.0])  # x + b < 0 -> x < -b
+    w2, b2 = np.array([0.0, +1.0]), np.array([0.0])  # y < 0
+    w3, b3 = np.array([0.0, -1.0]), np.array([0.0])  # y > 0
 
     reg_W = np.row_stack([w1, w2, w3][:K-1])
     reg_b = np.row_stack([b1, b2, b3][:K-1])
 
     # Scale the weights to make the transition boundary sharper
-    reg_scale = 10.
+    reg_scale = 5.
     reg_b *= reg_scale
     reg_W *= reg_scale
 
     # Account for stick breaking asymmetry
-    mu_b, _ = compute_psi_cmoments(np.ones(K))
-    reg_b += mu_b[:, None]
-    true_reg = MultinomialRegression(1, K, D_in, A=reg_W, b=reg_b)
+    true_reg = TreeStructuredMultinomialRegression(1, K, D_in, A=reg_W, b=reg_b)
 
     # Sample data from the model
     mask = np.ones((N, K-1), dtype=bool)
@@ -80,15 +73,15 @@ if __name__ == "__main__":
     usage = y_oh.sum(0)
     print("Label usage: ", usage)
 
-    # Apply a random permutation
-    perm = np.arange(K)
+    # Apply a permutation
     # perm = np.random.permutation(K)
     # perm = np.argsort(np.argsort(-usage))
+    perm = np.arange(K)
     y_oh_perm = y_oh[:, perm]
     y_perm = np.argmax(y_oh_perm, axis=1)
 
-    ### Create a test model for fitting
-    test_reg = MultinomialRegression(1, K, D_in, sigmasq_A=10000., sigmasq_b=10000.)
+    # Create a test model for fitting
+    test_reg = TreeStructuredMultinomialRegression(1, K, D_in, sigmasq_A=10000., sigmasq_b=10000.)
     for itr in range(N_iter):
         if itr % 100 == 0:
             print("Iter: {}".format(itr))
@@ -100,7 +93,7 @@ if __name__ == "__main__":
     print("Test A:\n{}".format(test_reg.A))
     print("Test b:\n{}".format(test_reg.b))
 
-    ### Plot the results
+    # Plot the results
     fig = plt.figure(figsize=(10,5))
     ax1 = fig.add_subplot(121)
     _plot_mult_probs(true_reg, ax=ax1)
