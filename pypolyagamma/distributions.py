@@ -10,6 +10,7 @@ from scipy.misc import logsumexp
 from .utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
 from . import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
 
+
 class _PGLogisticRegressionBase(object):
     """
     A base class for the emission matrix, C.
@@ -346,41 +347,178 @@ class NegativeBinomialRegression(_PGLogisticRegressionBase):
         return self.r * p / (1-p)
 
 
-class MultinomialRegression(_PGLogisticRegressionBase):
-    def __init__(self, N, D_out, D_in, **kwargs):
+# class MultinomialRegression(_PGLogisticRegressionBase):
+#     def __init__(self, N, D_out, D_in, **kwargs):
+#         """
+#         Here we take D_out to be the dimension of the
+#         multinomial distribution's output. Once we augment,
+#         however, the effective dimensionality is D_out-1.
+#         :param N:     Number of counts in the multinomial output
+#         :param D_out: Number of labels in the multinomial output
+#         :param D_in:  Dimensionality of the inputs
+#         """
+#         self.N = N
+#         self.K = D_out
+#         assert D_out >= 2 and isinstance(D_out, int)
+#
+#         # Set the mean of the offset to be standard
+#         # Dirichlet(alpha=1) when A=0.
+#         mu_b, sigmasq_b = compute_psi_cmoments(np.ones(self.K))
+#         default_args = dict(mu_b=mu_b, sigmasq_b=sigmasq_b)
+#         default_args.update(kwargs)
+#
+#         # Initialize the regression as if the outputs are
+#         # really (D_out - 1) dimensional.
+#         super(MultinomialRegression, self).\
+#             __init__(D_out-1, D_in, **default_args)
+#
+#     def a_func(self, data):
+#         assert data.shape[1] == self.K - 1
+#         return data
+#
+#     def b_func(self, data):
+#         T = data.shape[0]
+#         assert data.shape[1] == self.K - 1
+#         return np.hstack(
+#             (self.N * np.ones((T,1)),
+#              self.N * np.ones((T, 1)) - np.cumsum(data, axis=1)[:, :-1]))
+#
+#     def log_c_func(self, data):
+#         assert data.shape[1] == self.K - 1
+#         if self.N == 1:
+#             return 1.0
+#         else:
+#             return gammaln(self.N + 1) - \
+#                    np.sum(gammaln(data + 1), axis=1) - \
+#                    gammaln(self.N-np.sum(data, axis=1) + 1)
+#
+#
+#     def pi(self, X):
+#         from pypolyagamma.utils import psi_to_pi
+#         psi = np.dot(X, self.A.T) + self.b.T
+#         return psi_to_pi(psi)
+#
+#     def rvs(self, x=None, size=[], return_xy=False):
+#         if x is None:
+#             assert isinstance(size, int)
+#             x = npr.randn(size, self.D_in)
+#
+#         else:
+#             assert x.ndim == 2 and x.shape[1] == self.D_in
+#
+#         pi = self.pi(x)
+#         if pi.ndim == 1:
+#             y = npr.multinomial(self.N, pi)
+#         elif pi.ndim == 2:
+#             y = np.array([npr.multinomial(self.N, pp) for pp in pi])
+#         else:
+#             raise NotImplementedError
+#
+#         return (x, y) if return_xy else y
+#
+#     def mean(self, X):
+#         psi = X.dot(self.A.T) + self.b.T
+#         return psi_to_pi(psi)
+#
+#     def resample(self, data, mask=None, omega=None):
+#         """
+#         Multinomial regression is somewhat special. We have to compute the
+#         kappa functions for the entire dataset, not just for one column of
+#         the data at a time.
+#         """
+#         if not isinstance(data, list):
+#             assert isinstance(data, tuple) and len(data) == 2, \
+#                 "datas must be an (x,y) tuple or a list of such tuples"
+#             data = [data]
+#
+#         if mask is None:
+#             mask = [np.ones(y.shape, dtype=bool) for x, y in data]
+#
+#         # Resample auxiliary variables if they are not given
+#         if omega is None:
+#             omega = self._resample_auxiliary_variables(data)
+#
+#         # Make copies of parameters (for sample collection in calling methods)
+#         self.A = self.A.copy()
+#         self.b = self.b.copy()
+#
+#         D = self.D_in
+#         for n in range(self.D_out):
+#             # Resample C_{n,:} given z, omega[:,n], and kappa[:,n]
+#             prior_Sigma = np.zeros((D + 1, D + 1))
+#             prior_Sigma[:D, :D] = self.sigmasq_A[n]
+#             prior_Sigma[D, D] = self.sigmasq_b[n]
+#             prior_J = np.linalg.inv(prior_Sigma)
+#
+#             prior_h = prior_J.dot(np.concatenate((self.mu_A[n], [self.mu_b[n]])))
+#
+#             lkhd_h = np.zeros(D + 1)
+#             lkhd_J = np.zeros((D + 1, D + 1))
+#
+#             for d, m, o in zip(data, mask, omega):
+#                 if isinstance(d, tuple):
+#                     x, y = d
+#                 else:
+#                     x, y = d[:, :D], d[:, D:]
+#                 augx = np.hstack((x, np.ones((x.shape[0], 1))))
+#                 J = o * m
+#                 h = self.kappa_func(y) * m
+#
+#                 lkhd_J += (augx * J[:, n][:, None]).T.dot(augx)
+#                 lkhd_h += h[:, n].T.dot(augx)
+#
+#             post_h = prior_h + lkhd_h
+#             post_J = prior_J + lkhd_J
+#
+#             joint_sample = sample_gaussian(J=post_J, h=post_h)
+#             self.A[n, :] = joint_sample[:D]
+#             self.b[n] = joint_sample[D]
+
+
+class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
+    def __init__(self, N, D_out, D_in, tree=None, **kwargs):
         """
-        Here we take D_out to be the dimension of the
-        multinomial distribution's output. Once we augment,
-        however, the effective dimensionality is D_out-1.
-        :param N:     Number of counts in the multinomial output
-        :param D_out: Number of labels in the multinomial output
-        :param D_in:  Dimensionality of the inputs
+        Tree structured multinomial regression.  Each outcome
+        is the result of a series of binary choices that lead
+        to a leaf node. Each binary choice is given by a logistic
+        regression.
+
+        Operations:
+        1. Compute ancestral path of a leaf (which nodes were traversed)
+        2. Compute decisions made at each node
         """
         self.N = N
         self.K = D_out
         assert D_out >= 2 and isinstance(D_out, int)
 
-        # Set the mean of the offset to be standard
-        # Dirichlet(alpha=1) when A=0.
-        mu_b, sigmasq_b = compute_psi_cmoments(np.ones(self.K))
-        default_args = dict(mu_b=mu_b, sigmasq_b=sigmasq_b)
-        default_args.update(kwargs)
+        # Initialize the binary tree and compute ancestor and choices
+        from .binary_trees import check_tree, balanced_binary_tree, addresses
+        self.tree = tree if tree is not None else balanced_binary_tree(D_out)
+        check_tree(self.tree)
+        self.choices = addresses(self.tree)
+        self.ancestors = np.isfinite(self.choices)
+
+        # Invert choices to be consistent with old MultinomialRegression semantics
+        self.choices = 1 - self.choices
+        self.choices[~self.ancestors] = 0
 
         # Initialize the regression as if the outputs are
         # really (D_out - 1) dimensional.
-        super(MultinomialRegression, self).\
-            __init__(D_out-1, D_in, **default_args)
+        super(TreeStructuredMultinomialRegression, self).\
+            __init__(D_out-1, D_in, **kwargs)
 
     def a_func(self, data):
+        # which choices were made
         assert data.shape[1] == self.K - 1
-        return data
+        a = data.dot(self.choices[:-1])
+        a += (self.N - data.sum(axis=1, keepdims=True)) * self.choices[-1]
+        return a
 
     def b_func(self, data):
-        T = data.shape[0]
         assert data.shape[1] == self.K - 1
-        return np.hstack(
-            (self.N * np.ones((T,1)),
-             self.N * np.ones((T, 1)) - np.cumsum(data, axis=1)[:, :-1]))
+        b = data.dot(self.ancestors[:-1])
+        b += (self.N - data.sum(axis=1, keepdims=True)) * self.ancestors[-1]
+        return b
 
     def log_c_func(self, data):
         assert data.shape[1] == self.K - 1
@@ -391,11 +529,25 @@ class MultinomialRegression(_PGLogisticRegressionBase):
                    np.sum(gammaln(data + 1), axis=1) - \
                    gammaln(self.N-np.sum(data, axis=1) + 1)
 
-
     def pi(self, X):
-        from pypolyagamma.utils import psi_to_pi
-        psi = np.dot(X, self.A.T) + self.b.T
-        return psi_to_pi(psi)
+        # Get choice probabilities for each internal node
+        prs = logistic(np.dot(X, self.A.T) + self.b.T)
+
+        # Multiply choice probabilities to get pi
+        pi = np.ones((X.shape[0], self.K))
+        # for k in range(self.K):
+        #     for choice in range(self.K-1):
+        #         if self.ancestors[k, choice] == 1:
+        #             if self.choices[k, choice]:
+        #                 pi[:, k] *= prs[:,choice]
+        #             else:
+        #                 pi[:, k] *= (1 - prs[:, choice])
+        for k in range(self.K):
+            chk = self.choices[k, self.ancestors[k]]
+            prk = prs[:, self.ancestors[k]]
+            pi[:, k] = np.prod(chk * prk + (1-chk) * (1-prk), axis=1)
+        assert np.allclose(pi.sum(axis=1), 1.0)
+        return pi
 
     def rvs(self, x=None, size=[], return_xy=False):
         if x is None:
@@ -472,6 +624,30 @@ class MultinomialRegression(_PGLogisticRegressionBase):
             joint_sample = sample_gaussian(J=post_J, h=post_h)
             self.A[n, :] = joint_sample[:D]
             self.b[n] = joint_sample[D]
+
+
+class MultinomialRegression(TreeStructuredMultinomialRegression):
+    def __init__(self, N, D_out, D_in, **kwargs):
+        """
+        This uses the "logistic stick breaking" model of Linderman,
+        Johnson, and Adams, 2015.  This is a special case of the
+        tree structured stick breaking approach above.
+
+        NOTE: Set the mean so that the prior is close to Dirichlet.
+        """
+        # Set the mean of the offset to be standard
+        # Dirichlet(alpha=1) when A=0.
+        mu_b, sigmasq_b = compute_psi_cmoments(np.ones(D_out))
+        default_args = dict(mu_b=mu_b, sigmasq_b=sigmasq_b)
+        default_args.update(kwargs)
+
+        from .binary_trees import decision_list
+        tree = decision_list(D_out)
+
+        # Initialize the regression as if the outputs are
+        # really (D_out - 1) dimensional.
+        super(MultinomialRegression, self).\
+            __init__(N, D_out, D_in, tree=tree, **default_args)
 
 
 class _MixtureOfRegressionsBase(object):
