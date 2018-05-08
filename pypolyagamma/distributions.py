@@ -354,10 +354,6 @@ class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
         is the result of a series of binary choices that lead
         to a leaf node. Each binary choice is given by a logistic
         regression.
-
-        Operations:
-        1. Compute ancestral path of a leaf (which nodes were traversed)
-        2. Compute decisions made at each node
         """
         self.N = N
         self.K = D_out
@@ -387,6 +383,7 @@ class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
         return a
 
     def b_func(self, data):
+        # which internal nodes were traversed
         assert data.shape[1] == self.K - 1
         b = data.dot(self.ancestors[:-1])
         b += (self.N - data.sum(axis=1, keepdims=True)) * self.ancestors[-1]
@@ -407,13 +404,6 @@ class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
 
         # Multiply choice probabilities to get pi
         pi = np.ones((X.shape[0], self.K))
-        # for k in range(self.K):
-        #     for choice in range(self.K-1):
-        #         if self.ancestors[k, choice] == 1:
-        #             if self.choices[k, choice]:
-        #                 pi[:, k] *= prs[:,choice]
-        #             else:
-        #                 pi[:, k] *= (1 - prs[:, choice])
         for k in range(self.K):
             chk = self.choices[k, self.ancestors[k]]
             prk = prs[:, self.ancestors[k]]
