@@ -59,7 +59,7 @@ if not USE_CYTHON:
 # download GSL if we don't have it in deps
 if not os.path.exists('deps'):
     os.makedirs('deps')
-gslurl = 'http://open-source-box.org/gsl/gsl-latest.tar.gz'
+gslurl = 'http://ftp.snt.utwente.nl/pub/software/gnu/gsl/gsl-latest.tar.gz'
 gsltarpath = os.path.join('deps', 'gsl-latest.tar.gz')
 gslpath = os.path.join('deps', 'gsl')
 if not os.path.exists(gslpath):
