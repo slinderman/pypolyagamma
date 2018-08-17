@@ -92,21 +92,7 @@ def leaves(tree):
     return lvs
 
 
-def depths(tree):
-    ds = []
-    def _depths(node, d):
-        if np.isscalar(node):
-            ds.append(d)
-        elif isinstance(node, tuple) and len(node) == 2:
-            _depths(node[0], d+1)
-            _depths(node[1], d+1)
-        else:
-            raise Exception("Not a tree!")
-
-    _depths(tree, 0)
-    return ds
-
-def addresses(tree):
+def choices(tree):
     """
     Get the 'address' of each leaf node in terms of internal
     node choices
@@ -114,7 +100,7 @@ def addresses(tree):
     n = len(leaves(tree))
     addr = np.nan * np.ones((n, n-1))
     def _addresses(node, index, choices):
-        # index is the index of the current node
+        # index is the index of the current internal node
         # choices is a list of (indice, 0/1) choices made
         if np.isscalar(node):
             for i, choice in choices:
@@ -131,6 +117,59 @@ def addresses(tree):
 
     _addresses(tree, 0, [])
     return addr
+
+
+def ids(tree):
+    # keep track of node ids
+    from itertools import count
+    from collections import defaultdict
+    dd = defaultdict(lambda c=count(): c.__next__())
+
+    def _ids(node):
+        dd[node]
+        if isinstance(node, tuple) and len(node) == 2:
+            _ids(node[0])
+            _ids(node[1])
+    _ids(tree)
+    return dd
+
+
+def adjacency(tree):
+    """
+    Construct the adjacency matrix of the tree
+    :param tree:
+    :return:
+    """
+    dd = ids(tree)
+    N = len(dd)
+    A = np.zeros((N, N))
+
+    def _adj(node):
+        if np.isscalar(node):
+            return
+        elif isinstance(node, tuple) and len(node) == 2:
+            A[dd[node], dd[node[0]]] = 1
+            A[dd[node[0]], dd[node]] = 1
+            _adj(node[0])
+
+            A[dd[node], dd[node[1]]] = 1
+            A[dd[node[1]], dd[node]] = 1
+            _adj(node[1])
+
+    _adj(tree)
+    return A
+
+
+def depths(tree):
+    _ids = ids(tree)
+    out = {}
+    def _depths(node, d):
+        out[_ids[node]] = d
+        if isinstance(node, tuple) and len(node) == 2:
+            _depths(node[0], d+1)
+            _depths(node[1], d+1)
+    _depths(tree, 0)
+    return out
 
 
 def print_tree(tree):
@@ -165,11 +204,15 @@ if __name__ == "__main__":
     tree = balanced_binary_tree(8)
     check_tree(tree)
     print(tree)
-    print(addresses(tree))
+    print(choices(tree))
+    print(adjacency(tree))
     print("")
 
     tree = random_tree(10)
     check_tree(tree)
     print(tree)
-    print(addresses(tree))
+    print(choices(tree))
+    print(adjacency(tree))
     print("")
+
+

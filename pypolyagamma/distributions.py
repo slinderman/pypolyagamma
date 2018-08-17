@@ -360,10 +360,10 @@ class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
         assert D_out >= 2 and isinstance(D_out, int)
 
         # Initialize the binary tree and compute ancestor and choices
-        from .binary_trees import check_tree, balanced_binary_tree, addresses
-        self.tree = tree if tree is not None else balanced_binary_tree(D_out)
-        check_tree(self.tree)
-        self.choices = addresses(self.tree)
+        import pypolyagamma.binary_trees as bt
+        self.tree = tree if tree is not None else bt.balanced_binary_tree(D_out)
+        bt.check_tree(self.tree)
+        self.choices = bt.choices(self.tree)
         self.ancestors = np.isfinite(self.choices)
 
         # Invert choices to be consistent with old MultinomialRegression semantics
