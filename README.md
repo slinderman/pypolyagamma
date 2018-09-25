@@ -77,6 +77,8 @@ a standard normal prior on `x`.
 
 First, sample a count from the model:
 ```python
+import numpy as np
+import numpy.random as npr
 from pypolyagamma import logistic, PyPolyaGamma
 
 # Consider a simple binomial model with unknown probability
@@ -146,6 +148,9 @@ parallel sampling. If you are compiling with conda's version of
 To sample in parallel, call the `pgdrawvpar` method:
 
 ```python
+import numpy as np
+import pypolyagamma
+
 n = 10             # Number of variates to sample
 b = np.ones(n)     # Vector of shape parameters
 c = np.zeros(n)    # Vector of tilting parameters
