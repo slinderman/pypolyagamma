@@ -7,7 +7,7 @@ from pypolyagamma.pypolyagamma import PyRNG, PyPolyaGamma
 try:
     from pypolyagamma.parallel import pgdrawvpar, get_omp_num_threads
 
-except:
+except Exception as e:
     def get_omp_num_threads():
         return 1
 

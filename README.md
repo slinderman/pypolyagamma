@@ -118,7 +118,13 @@ and compare the samples to the target density.
 ![Binomial](https://raw.githubusercontent.com/slinderman/pypolyagamma/master/aux/binomial.png)
 
 # Manual Installation
-If you're a developer, you can also install from source:
+If you're a developer, you can also install from source.
+First install the dependencies
+
+    conda install gsl
+    conda install gcc
+
+Then you will be able to build the Cython code. 
 
     git clone git@github.com:slinderman/pypolyagamma.git
     cd pypolyagamma
@@ -130,25 +136,12 @@ To check if it worked, run:
 
 If all the tests pass then you're good to go!
 
-Under the hood, the installer will download
-[GSL](https://www.gnu.org/software/gsl/),
-untar it, and place it in `deps/gsl`. It will then configure GSL and
-compile the Pólya-gamma code along with the required GSL source files.
-This way, you don't need GSL to be installed and available on your
-library path. 
-
 ## Parallel sampling with OpenMP
 By default, the simple installation above will not support
-parallel sampling. If you are compiling with GNU `gcc` and `g++`,
-you can enable OpenMP support with the flag:
+parallel sampling. If you are compiling with conda's version of
+`gcc` and `g++`, you can enable OpenMP support with the flag:
 
     USE_OPENMP=True pip install -e .
-
-Mac users: you can install `gcc` and `g++` with Homebrew. Just
-make sure that they are your default compilers, e.g. by setting
-the environment variables `CC` and `CXX` to point to the GNU versions
-of `gcc` and `g++`, respectively. With Homebrew, these versions
-will be in `/usr/local/bin` by default.
 
 To sample in parallel, call the `pgdrawvpar` method:
 
@@ -169,7 +162,6 @@ pypolyagamma.pgdrawvpar(ppgs, b, c, out)
 
 If you haven't installed with OpenMP, this function will
 revert to the serial sampler.
-
 
 # References
 

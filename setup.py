@@ -5,26 +5,6 @@ from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext as _build_ext
 import pkg_resources
 
-
-from glob import glob
-import tarfile
-import shutil
-import subprocess
-
-# Not the greatest way to handle Python 2/3 changes
-# but this avoids the need for the 'future' modules,
-# which was causing some headaches in installation.
-try:
-    # Python 2
-    from urllib import urlretrieve
-except:
-    try:
-        # Python 3
-        from urllib.request import urlretrieve
-    except:
-        raise Exception("Could not import urlretrieve.")
-
-
 # Hold off on locating the numpy include directory 
 # until we are actually building the extensions, by which 
 # point numpy should have been installed
@@ -56,39 +36,11 @@ if not USE_CYTHON:
     if USE_OPENMP:
         assert os.path.exists(os.path.join("pypolyagamma", "parallel.cpp"))
 
-# download GSL if we don't have it in deps
-if not os.path.exists('deps'):
-    os.makedirs('deps')
-gslurl = 'http://ftp.snt.utwente.nl/pub/software/gnu/gsl/gsl-latest.tar.gz'
-gsltarpath = os.path.join('deps', 'gsl-latest.tar.gz')
-gslpath = os.path.join('deps', 'gsl')
-if not os.path.exists(gslpath):
-    print('Downloading GSL...')
-    urlretrieve(gslurl, gsltarpath)
-    print("Extracting to {}".format(gslpath))
-    with tarfile.open(gsltarpath, 'r') as tar:
-        tar.extractall('deps')
-    thedir = glob(os.path.join('deps', 'gsl-*/'))[0]
-    shutil.copytree(os.path.join(thedir), gslpath)
-    print('...Done!')
-
-# Check if GSL has been configured
-if not os.path.exists(os.path.join(gslpath, "config.h")):
-    # Run configure to make config.h
-    subprocess.call("./configure", cwd=gslpath, shell=True)
-
-# Check if the GSL headers have been symlinked
-if not os.path.exists(os.path.join(gslpath, "gsl", "gsl_rng.h")):
-    # Run make to symlink the headers
-    subprocess.call("make", cwd=os.path.join(gslpath, "gsl"), shell=True)
-
 
 # Manually define the list of sources, including GSL files
 include_dirs = \
     [
         "pypolyagamma/cpp/include",
-        "deps/gsl",
-        "deps/gsl/gsl",
     ]
 
 headers = \
@@ -106,36 +58,10 @@ sources = \
         "pypolyagamma/cpp/InvertY.cpp",
         "pypolyagamma/cpp/include/RNG.cpp",
         "pypolyagamma/cpp/include/GRNG.cpp",
-        "deps/gsl/rng/mt.c",
-        "deps/gsl/cdf/gamma.c",
-        "deps/gsl/cdf/gauss.c",
-        "deps/gsl/randist/bernoulli.c",
-        "deps/gsl/randist/beta.c",
-        "deps/gsl/randist/chisq.c",
-        "deps/gsl/randist/exponential.c",
-        "deps/gsl/randist/flat.c",
-        "deps/gsl/randist/gamma.c",
-        "deps/gsl/randist/gauss.c",
-        "deps/gsl/randist/gausszig.c",
-        "deps/gsl/rng/rng.c",
-        "deps/gsl/err/error.c",
-        "deps/gsl/rng/file.c",
-        "deps/gsl/specfunc/gamma.c",
-        "deps/gsl/specfunc/gamma_inc.c",
-        "deps/gsl/specfunc/erfc.c",
-        "deps/gsl/specfunc/exp.c",
-        "deps/gsl/specfunc/expint.c",
-        "deps/gsl/specfunc/trig.c",
-        "deps/gsl/specfunc/log.c",
-        "deps/gsl/specfunc/psi.c",
-        "deps/gsl/specfunc/zeta.c",
-        "deps/gsl/specfunc/elementary.c",
-        "deps/gsl/complex/math.c",
-        "deps/gsl/sys/infnan.c",
-        "deps/gsl/sys/fdiv.c",
-        "deps/gsl/sys/coerce.c",
-        "deps/gsl/err/stream.c"
     ]
+
+libraries = ["gsl", "gslcblas"]
+
 
 # Create the extensions. Manually enumerate the required
 extensions = []
@@ -144,9 +70,10 @@ extensions = []
 extensions.append(
     Extension('pypolyagamma.pypolyagamma',
               depends=headers,
-              extra_compile_args=["-w", "-DHAVE_INLINE"],
+              extra_compile_args=[],
               extra_link_args=[],
               include_dirs=include_dirs,
+              libraries=libraries,
               language="c++",
               sources=["pypolyagamma/pypolyagamma" + ext] + sources,
               )
@@ -157,9 +84,10 @@ if USE_OPENMP:
     extensions.append(
         Extension('pypolyagamma.parallel',
                   depends=headers,
-                  extra_compile_args=["-w","-fopenmp", "-DHAVE_INLINE"],
+                  extra_compile_args=["-fopenmp"],
                   extra_link_args=["-fopenmp"],
                   include_dirs=include_dirs,
+                  libraries=libraries,
                   language="c++",
                   sources=["pypolyagamma/parallel" + ext] + sources,
                   )
@@ -171,7 +99,7 @@ if USE_CYTHON:
 
 setup(
     name='pypolyagamma',
-    version='1.1.4',
+    version='1.1.7',
     description='''Cython wrappers for Polya gamma random number generation based on Jesse Windle\'s BayesLogit package: https://github.com/jwindle/BayesLogit.''',
     author='Scott Linderman',
     author_email='scott.linderman@columbia.edu',
