@@ -176,7 +176,7 @@ setup(
     author='Scott Linderman',
     author_email='scott.linderman@columbia.edu',
     url='http://www.github.com/slinderman/pypolyagamma',
-    license="MIT",
+    license="GNU GPLv3",
     packages=['pypolyagamma'],
     ext_modules=extensions,
     install_requires=['numpy', 'scipy', 'matplotlib'],
