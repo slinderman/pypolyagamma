@@ -119,8 +119,8 @@ and compare the samples to the target density.
 
 # Manual Installation
 You can also install from source, but you'll need cython.
-    pip install cython
-    
+
+    pip install cython    
     git clone git@github.com:slinderman/pypolyagamma.git
     cd pypolyagamma
     pip install -e .
