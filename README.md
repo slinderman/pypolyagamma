@@ -118,8 +118,9 @@ and compare the samples to the target density.
 ![Binomial](https://raw.githubusercontent.com/slinderman/pypolyagamma/master/aux/binomial.png)
 
 # Manual Installation
-If you're a developer, you can also install from source:
-
+You can also install from source, but you'll need cython.
+    pip install cython
+    
     git clone git@github.com:slinderman/pypolyagamma.git
     cd pypolyagamma
     pip install -e .

@@ -51,10 +51,13 @@ USE_OPENMP = os.environ.get('USE_OPENMP', False)
 #  If not using Cython, make sure the cpp files are present
 ext = ".pyx" if USE_CYTHON else ".cpp"
 if not USE_CYTHON:
+    err_msg = "You must have cython installed if you are installing from Github, " \
+              "since Github does not include the .cpp files."
     # Make sure that the CPP files are present
-    assert os.path.exists(os.path.join("pypolyagamma", "pypolyagamma.cpp"))
+    assert os.path.exists(os.path.join("pypolyagamma", "pypolyagamma.cpp")), err_msg
+
     if USE_OPENMP:
-        assert os.path.exists(os.path.join("pypolyagamma", "parallel.cpp"))
+        assert os.path.exists(os.path.join("pypolyagamma", "parallel.cpp")), err_msg
 
 # download GSL if we don't have it in deps
 if not os.path.exists('deps'):
