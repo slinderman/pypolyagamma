@@ -110,7 +110,11 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
     return True
 
 def test_parallel2():
+    """Test multiple cases of OMP"""
     num_threads = pypolyagamma.get_omp_num_threads()
+    if num_threads < 2:
+        return
+
     np.random.seed(0)
 
     # Case 1: n < nthreads, nthreads = num_threads
