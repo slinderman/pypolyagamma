@@ -91,7 +91,7 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
     bins = np.linspace(0, 2.0, 50)
     centers = 0.5 * (bins[1:] + bins[:-1])
     p_centers = pypolyagamma.pgpdf(centers, b, c)
-    empirical_pdf, _ = np.histogram(smpls, bins, normed=True)
+    empirical_pdf, _ = np.histogram(smpls, bins, density=True)
 
     # Check that the empirical pdf is close to the true pdf
     err = (empirical_pdf - p_centers) / p_centers
@@ -100,7 +100,7 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
 
     if plot:
         import matplotlib.pyplot as plt
-        plt.hist(smpls, bins=50, normed=True, alpha=0.5)
+        plt.hist(smpls, bins=50, density=True, alpha=0.5)
 
         # Plot high resolution density
         oms = np.linspace(1e-3, 2.0, 1000)
