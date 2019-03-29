@@ -5,7 +5,7 @@
 from cython.parallel import prange, parallel
 from libcpp.vector cimport vector
 
-from openmp cimport omp_get_num_threads, omp_get_thread_num, omp_get_max_threads
+from openmp cimport omp_get_num_threads, omp_get_thread_num, omp_get_max_threads, omp_set_num_threads
 
 cimport pypolyagamma
 import pypolyagamma
@@ -24,6 +24,8 @@ cpdef pgdrawvpar(list ppgs, double[::1] ns, double[::1] zs, double[::1] pgs):
     cdef int S = ns.size
 
     cdef int num_threads, blocklen, sequence_idx_start, sequence_idx_end, thread_num
+
+    omp_set_num_threads(m)
 
     with nogil, parallel():
         # Fix up assignments to avoid cache collisions

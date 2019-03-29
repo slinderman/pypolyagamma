@@ -112,6 +112,106 @@ def test_density(b=1.0, c=0.0, N_smpls=10000, plot=False):
         plt.show()
     return True
 
+def test_parallel2():
+    """Test multiple cases of OMP"""
+    num_threads = pypolyagamma.get_omp_num_threads()
+    if num_threads < 2:
+        return
+
+    np.random.seed(0)
+
+    # Case 1: n < nthreads, nthreads = num_threads
+    nthreads = num_threads
+    n = nthreads - 1
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 2: n < nthreads, nthreads < num_threads
+    nthreads = num_threads - 1
+    n = nthreads - 1
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 3: n < nthreads, nthreads > num_threads
+    nthreads = num_threads + 1
+    n = nthreads - 1
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 4: n > nthreads, nthreads = num_threads
+    nthreads = num_threads
+    n = nthreads + 1
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 5: n > nthreads, nthreads < num_threads
+    nthreads = num_threads - 1
+    n = nthreads + 1
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 6: n > nthreads, nthreads > num_threads
+    nthreads = num_threads + 1
+    n = nthreads + 1
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 7: n = nthreads, nthreads = num_threads
+    nthreads = num_threads
+    n = nthreads
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 8: n = nthreads, nthreads < num_threads
+    nthreads = num_threads - 1
+    n = nthreads
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    # Case 9: n = nthreads, nthreads > num_threads
+    nthreads = num_threads + 1
+    n = nthreads
+    v3 = np.zeros(n)
+    a = 14 * np.ones(n)
+    b = 0 * np.ones(n)
+    seeds = np.random.randint(2**16, size=nthreads)
+    ppgs = [pypolyagamma.PyPolyaGamma(seed) for seed in seeds]
+    pypolyagamma.pgdrawvpar(ppgs, a, b, v3)
+
+    return True
+
 
 if __name__ == "__main__":
     verbose = len(sys.argv) > 1 and (sys.argv[1] == '-v' or sys.argv[1] == "--verbose")
@@ -120,5 +220,6 @@ if __name__ == "__main__":
     assert test_vector_draw(verbose)
     assert test_parallel(verbose)
     assert test_density()
+    assert test_parallel2()
     # ks_test()
     print("Tests passed!")
