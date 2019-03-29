@@ -22,5 +22,5 @@ except:
 from pypolyagamma.utils import pgpdf, pgmean, logistic
 from pypolyagamma.distributions import BernoulliRegression, \
     BinomialRegression, NegativeBinomialRegression, MultinomialRegression, \
-    MixtureOfMultinomialRegressions
+    MixtureOfMultinomialRegressions, TreeStructuredMultinomialRegression
 

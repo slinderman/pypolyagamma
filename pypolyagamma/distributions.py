@@ -10,6 +10,7 @@ from scipy.misc import logsumexp
 from .utils import logistic, sample_gaussian, psi_to_pi, compute_psi_cmoments
 from . import get_omp_num_threads, pgdrawvpar, PyPolyaGamma
 
+
 class _PGLogisticRegressionBase(object):
     """
     A base class for the emission matrix, C.
@@ -346,41 +347,47 @@ class NegativeBinomialRegression(_PGLogisticRegressionBase):
         return self.r * p / (1-p)
 
 
-class MultinomialRegression(_PGLogisticRegressionBase):
-    def __init__(self, N, D_out, D_in, **kwargs):
+class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
+    def __init__(self, N, D_out, D_in, tree=None, **kwargs):
         """
-        Here we take D_out to be the dimension of the
-        multinomial distribution's output. Once we augment,
-        however, the effective dimensionality is D_out-1.
-        :param N:     Number of counts in the multinomial output
-        :param D_out: Number of labels in the multinomial output
-        :param D_in:  Dimensionality of the inputs
+        Tree structured multinomial regression.  Each outcome
+        is the result of a series of binary choices that lead
+        to a leaf node. Each binary choice is given by a logistic
+        regression.
         """
         self.N = N
         self.K = D_out
         assert D_out >= 2 and isinstance(D_out, int)
 
-        # Set the mean of the offset to be standard
-        # Dirichlet(alpha=1) when A=0.
-        mu_b, sigmasq_b = compute_psi_cmoments(np.ones(self.K))
-        default_args = dict(mu_b=mu_b, sigmasq_b=sigmasq_b)
-        default_args.update(kwargs)
+        # Initialize the binary tree and compute ancestor and choices
+        import pypolyagamma.binary_trees as bt
+        self.tree = tree if tree is not None else bt.balanced_binary_tree(D_out)
+        bt.check_tree(self.tree)
+        self.choices = bt.choices(self.tree)
+        self.ancestors = np.isfinite(self.choices)
+
+        # Invert choices to be consistent with old MultinomialRegression semantics
+        self.choices = 1 - self.choices
+        self.choices[~self.ancestors] = 0
 
         # Initialize the regression as if the outputs are
         # really (D_out - 1) dimensional.
-        super(MultinomialRegression, self).\
-            __init__(D_out-1, D_in, **default_args)
+        super(TreeStructuredMultinomialRegression, self).\
+            __init__(D_out-1, D_in, **kwargs)
 
     def a_func(self, data):
+        # which choices were made
         assert data.shape[1] == self.K - 1
-        return data
+        a = data.dot(self.choices[:-1])
+        a += (self.N - data.sum(axis=1, keepdims=True)) * self.choices[-1]
+        return a
 
     def b_func(self, data):
-        T = data.shape[0]
+        # which internal nodes were traversed
         assert data.shape[1] == self.K - 1
-        return np.hstack(
-            (self.N * np.ones((T,1)),
-             self.N * np.ones((T, 1)) - np.cumsum(data, axis=1)[:, :-1]))
+        b = data.dot(self.ancestors[:-1])
+        b += (self.N - data.sum(axis=1, keepdims=True)) * self.ancestors[-1]
+        return b
 
     def log_c_func(self, data):
         assert data.shape[1] == self.K - 1
@@ -391,11 +398,18 @@ class MultinomialRegression(_PGLogisticRegressionBase):
                    np.sum(gammaln(data + 1), axis=1) - \
                    gammaln(self.N-np.sum(data, axis=1) + 1)
 
-
     def pi(self, X):
-        from pypolyagamma.utils import psi_to_pi
-        psi = np.dot(X, self.A.T) + self.b.T
-        return psi_to_pi(psi)
+        # Get choice probabilities for each internal node
+        prs = logistic(np.dot(X, self.A.T) + self.b.T)
+
+        # Multiply choice probabilities to get pi
+        pi = np.ones((X.shape[0], self.K))
+        for k in range(self.K):
+            chk = self.choices[k, self.ancestors[k]]
+            prk = prs[:, self.ancestors[k]]
+            pi[:, k] = np.prod(chk * prk + (1-chk) * (1-prk), axis=1)
+        assert np.allclose(pi.sum(axis=1), 1.0)
+        return pi
 
     def rvs(self, x=None, size=[], return_xy=False):
         if x is None:
@@ -472,6 +486,30 @@ class MultinomialRegression(_PGLogisticRegressionBase):
             joint_sample = sample_gaussian(J=post_J, h=post_h)
             self.A[n, :] = joint_sample[:D]
             self.b[n] = joint_sample[D]
+
+
+class MultinomialRegression(TreeStructuredMultinomialRegression):
+    def __init__(self, N, D_out, D_in, **kwargs):
+        """
+        This uses the "logistic stick breaking" model of Linderman,
+        Johnson, and Adams, 2015.  This is a special case of the
+        tree structured stick breaking approach above.
+
+        NOTE: Set the mean so that the prior is close to Dirichlet.
+        """
+        # Set the mean of the offset to be standard
+        # Dirichlet(alpha=1) when A=0.
+        mu_b, sigmasq_b = compute_psi_cmoments(np.ones(D_out))
+        default_args = dict(mu_b=mu_b, sigmasq_b=sigmasq_b)
+        default_args.update(kwargs)
+
+        from .binary_trees import decision_list
+        tree = decision_list(D_out)
+
+        # Initialize the regression as if the outputs are
+        # really (D_out - 1) dimensional.
+        super(MultinomialRegression, self).\
+            __init__(N, D_out, D_in, tree=tree, **default_args)
 
 
 class _MixtureOfRegressionsBase(object):
