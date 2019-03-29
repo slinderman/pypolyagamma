@@ -49,7 +49,7 @@ def test_parallel(verbose=False):
     np.random.seed(0)
 
     n = 5
-    nthreads = 8
+    nthreads = pypolyagamma.get_omp_num_threads()
     v3 = np.zeros(n)
     a = 14 * np.ones(n)
     b = 0 * np.ones(n)
