@@ -357,7 +357,7 @@ class TreeStructuredMultinomialRegression(_PGLogisticRegressionBase):
         """
         self.N = N
         self.K = D_out
-        assert D_out >= 2 and isinstance(D_out, int)
+        assert D_out >= 1 and isinstance(D_out, int)
 
         # Initialize the binary tree and compute ancestor and choices
         import pypolyagamma.binary_trees as bt
