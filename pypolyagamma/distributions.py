@@ -3,7 +3,10 @@ import numpy as np
 import numpy.random as npr
 from scipy.special import gammaln
 from scipy.sparse import csr_matrix
-from scipy.misc import logsumexp
+try:
+    from scipy.misc import logsumexp
+except(ImportError):
+    from scipy.special import logsumexp # scipy>=1.3.0
 
 # Name collision in pypolyagamma.pypolyagamma
 # Use relative paths instead (ugh).
