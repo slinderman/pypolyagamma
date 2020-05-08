@@ -174,7 +174,7 @@ if USE_CYTHON:
 
 setup(
     name='pypolyagamma',
-    version='1.2.2',
+    version='1.2.3',
     description='''Cython wrappers for Polya gamma random number generation based on Jesse Windle\'s BayesLogit package: https://github.com/jwindle/BayesLogit.''',
     author='Scott Linderman',
     author_email='scott.linderman@columbia.edu',
