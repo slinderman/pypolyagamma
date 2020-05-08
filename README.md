@@ -127,6 +127,7 @@ You can also install from source, but you'll need cython.
 
 To check if it worked, run:
 
+    pip install nose
     nosetests
 
 If all the tests pass then you're good to go!
